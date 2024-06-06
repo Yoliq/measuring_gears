@@ -1,2 +1,7 @@
 # mesuiring_gears
-Measuring gears programs for Raspberry PI
+Repository to handle all code regarding thesis which is about automatization of measuring load on mechanical gears.
+
+Repository contains:
+* GUI
+* IRC library
+* Lidar library
