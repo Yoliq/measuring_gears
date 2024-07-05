@@ -290,9 +290,9 @@ canvas.create_text(
     1261.0,
     383.0,
     anchor="nw",
-    text="20,46",
+    text="18,46",
     fill="#000000",
-    font=("RobotoRoman Bold", 40 * -1)
+    font=("Arial", 40 * -1, "bold")
 )
 
 canvas.create_text(
