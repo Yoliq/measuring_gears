@@ -2,9 +2,9 @@ import RPi.GPIO as GPIO
 import time
 
 # Pin definitions
-ZeroPin = 2  # GPIO pin for Z channel (zero detection)
-COSPin = 3   # GPIO pin for A channel (cos signal) 
-SINPin = 4   # GPIO pin for B channel (sin signal)  
+ZeroPin = 13  # GPIO pin for Z channel (zero detection)
+COSPin = 5   # GPIO pin for A channel (cos signal) 
+SINPin = 6   # GPIO pin for B channel (sin signal)  
 
 # variables
 ENC_STOP = 0
@@ -23,8 +23,8 @@ def setup():
     GPIO.setup(SINPin, GPIO.IN)
 
     # set internal pull-up resistor for interrupt pin
-    GPIO.setup(COSPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(ZeroPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(COSPin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(ZeroPin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
     # set interrupt service routine to COSPin and 'RISING' edge 
     GPIO.add_event_detect(COSPin, GPIO.RISING, callback=encoder_isr)
@@ -50,7 +50,7 @@ def loop():
             print("Stop")
         
         encoder_oldpos = encoder_position
-        time.sleep(0.5)
+        time.sleep(0.05)
 
 def encoder_isr(channel):
     global encoder_state, encoder_position
