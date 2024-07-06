@@ -6,23 +6,17 @@ ZeroPin = 2  # GPIO pin for Z channel (zero detection)
 COSPin = 3   # GPIO pin for A channel (cos signal) 
 SINPin = 4   # GPIO pin for B channel (sin signal)  
 
-# variables of states
+# variables
 ENC_STOP = 0
 ENC_CLOCKWISE_ROTATION = 1
 ENC_COUNTERCLOCKWISE_ROTATION = 2
-
-global encoder_state
-global encoder_position
-global encoder_oldpos
 
 encoder_state = ENC_STOP
 encoder_position = 0
 encoder_oldpos = 0
 
-
-
 def setup():
-
+    global encoder_state, encoder_position, encoder_oldpos
     GPIO.setmode(GPIO.BCM)  # Use BCM pin numbering
 
     # Define pins for input and output
@@ -32,20 +26,21 @@ def setup():
     GPIO.setup(COSPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(ZeroPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-    # set interrupt service routine to COSPin and 'RISING' edge
+    # set interrupt service routine to COSPin and 'RISING' edge 
     GPIO.add_event_detect(COSPin, GPIO.RISING, callback=encoder_isr)
 
     # set interrupt service routine to ZeroPin and 'HIGH' level 
     GPIO.add_event_detect(ZeroPin, GPIO.RISING, callback=zero_detection_isr)
 
 def loop():
+    global encoder_state, encoder_position, encoder_oldpos
     while True:
         # Detect Encoder Stop
         if encoder_oldpos == encoder_position:
             encoder_state = ENC_STOP
 
         # output encoder incremental and status
-        print("Encoder position:", encoder_position, ", Encoder state:")
+        print("Encoder position:", encoder_position, ", Encoder state:", end=" ")
         
         if encoder_state == ENC_CLOCKWISE_ROTATION:
             print("Clockwise Rotation")
@@ -57,7 +52,8 @@ def loop():
         encoder_oldpos = encoder_position
         time.sleep(0.5)
 
-def encoder_isr(COSPin):
+def encoder_isr(channel):
+    global encoder_state, encoder_position
     if GPIO.input(SINPin) == GPIO.LOW:
         # clockwise rotation
         encoder_state = ENC_CLOCKWISE_ROTATION
@@ -67,7 +63,8 @@ def encoder_isr(COSPin):
         encoder_state = ENC_COUNTERCLOCKWISE_ROTATION
         encoder_position -= 1
 
-def zero_detection_isr(ZeroPin):
+def zero_detection_isr(channel):
+    global encoder_position
     # detect pulse on zero channel
     encoder_position = 0
 
