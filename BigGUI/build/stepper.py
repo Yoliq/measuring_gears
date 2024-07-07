@@ -49,13 +49,22 @@ class Stepper_motor:
     def stop_motor(self):
         self.motor_running = False
         
-    def rotate(self, steps):
+    def sekvence_up(self, event):
+        steps = self.steps / 360 * 90  # otočení o 90 stupňů
         self.motor_running = True
         motor_thread = Thread(target=self.step_motor, args=(GPIO.HIGH, steps))
         motor_thread.start()
-        motor_thread.join() #Wait for the rotation to complete
+        motor_thread.join()  # Wait for the rotation to complete
         self.motor_running = False 
 
+    def sekvence_down(self):
+        steps = self.steps / 360 * 90  # otočení o 90 stupňů
+        self.motor_running = True
+        motor_thread = Thread(target=self.step_motor, args=(GPIO.LOW, steps))
+        motor_thread.start()
+        motor_thread.join()  # Wait for the rotation to complete
+        self.motor_running = False
+    
     def on_button_press_forward(self, event):
         #print("button_1 pressed")
         self.start_motor(GPIO.HIGH)
