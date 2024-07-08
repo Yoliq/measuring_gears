@@ -65,6 +65,6 @@ if __name__ == "__main__":
         while True:
             position, state = encoder.get_reading()
             print(f"Encoder position: {position}, Encoder state: {state}")
-            time.sleep(3)
+            time.sleep(0.5)
     except KeyboardInterrupt:
         encoder.cleanup()

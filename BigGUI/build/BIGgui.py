@@ -1,9 +1,11 @@
 from pathlib import Path
-from tkinter import Tk, Canvas, Entry, Text, PhotoImage
+import tkinter as tk
+from tkinter import Tk, Canvas, Entry, Text, PhotoImage, StringVar
 from PIL import Image, ImageTk
 from stepper import Stepper_motor
 from threading import Thread
 import RPi.GPIO as GPIO
+import re 
 
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / "assets" / "frame0"
@@ -21,6 +23,12 @@ small_motor = Stepper_motor(16, 20, 21, 0.001, STEPS_small_motor, 23)
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
+def validate_numeric_input(new_value):
+    if new_value == "" or new_value.replace('.', '', 1).isdigit() or new_value.replace(',', '', 1).isdigit():
+        return True
+    return False
+
+##################    Začátek GUI      ######################
 window = Tk()
 window.geometry("2560x1440")
 window.configure(bg="#FFFFFF")
@@ -83,7 +91,7 @@ canvas.create_text(
     anchor="nw",
     text="OVLÁDÁNÍ STANOVIŠTĚ",
     fill="#000000",
-    font=("Arial BoldMT", 90 * -1)
+    font=("Arial", 90 * -1, "bold")
 )
 
 image_image_4 = PhotoImage(file=relative_to_assets("image_4.png"))
@@ -184,21 +192,6 @@ button_6_canvas = canvas.create_image(1208, 166, image=button_6_photo, anchor="n
 canvas.tag_bind(button_6_canvas, "<Button-1>", lambda event: on_button_press(event, button_6_canvas, button_6_pressed_photo, "Button 6"))
 canvas.tag_bind(button_6_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_6_canvas, button_6_photo, "Button 6"))
 
-image_image_8 = PhotoImage(file=relative_to_assets("image_8.png"))
-image_8 = canvas.create_image(1183.0, 324.0, image=image_image_8)
-
-image_image_9 = PhotoImage(file=relative_to_assets("image_9.png"))
-image_9 = canvas.create_image(1366.0, 591.0, image=image_image_9)
-
-image_image_10 = PhotoImage(file=relative_to_assets("image_10.png"))
-image_10 = canvas.create_image(957, 315, image=image_image_10)
-
-image_image_11 = PhotoImage(file=relative_to_assets("image_11.png"))
-image_11 = canvas.create_image(1576.0, 614.0, image=image_image_11)
-
-image_image_12 = PhotoImage(file=relative_to_assets("image_12.png"))
-image_12 = canvas.create_image(1320.0, 409.0, image=image_image_12)
-
 # Tlacitko 7 STOP
 button_image_7_path = relative_to_assets("button_7.png")
 button_image_7_pressed_path = relative_to_assets("button_7_pressed.png")
@@ -208,8 +201,8 @@ button_7_pressed = Image.open(button_image_7_pressed_path).convert("RGBA")
 button_7_pressed_photo = ImageTk.PhotoImage(button_7_pressed)
 button_7_canvas = canvas.create_image(2269, 17, image=button_7_photo, anchor="nw")
 
-canvas.tag_bind(button_7_canvas, "<Button-1>", lambda event: on_button_press(event, button_7_canvas, button_7_pressed_photo, "Button 7"))
-canvas.tag_bind(button_7_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_7_canvas, button_7_photo, "Button 7"))
+canvas.tag_bind(button_7_canvas, "<Button-1>", lambda event: (on_button_press(event, button_7_canvas, button_7_pressed_photo, "STOP"), big_motor.stop_motor(), small_motor.stop_motor()))
+canvas.tag_bind(button_7_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_7_canvas, button_7_photo, "STOP"))
 
 # Tlacitko 8 ULOZIT
 button_image_8_path = relative_to_assets("button_8.png")
@@ -223,26 +216,8 @@ button_8_canvas = canvas.create_image(1953, 28, image=button_8_photo, anchor="nw
 canvas.tag_bind(button_8_canvas, "<Button-1>", lambda event: on_button_press(event, button_8_canvas, button_8_pressed_photo, "Button 8"))
 canvas.tag_bind(button_8_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_8_canvas, button_8_photo, "Button 8"))
 
-image_image_13 = PhotoImage(file=relative_to_assets("image_13.png"))
-image_13 = canvas.create_image(1567.0, 1057.0, image=image_image_13)
-
-image_image_14 = PhotoImage(file=relative_to_assets("image_14.png"))
-image_14 = canvas.create_image(1543.0, 1184.0, image=image_image_14)
-
-image_image_15 = PhotoImage(file=relative_to_assets("image_15.png"))
-image_15 = canvas.create_image(1543.0, 1300.0, image=image_image_15)
-
-image_image_16 = PhotoImage(file=relative_to_assets("image_16.png"))
-image_16 = canvas.create_image(2164.5106201171875, 470.0, image=image_image_16)
-
 image_image_17 = PhotoImage(file=relative_to_assets("image_17.png"))
 image_17 = canvas.create_image(340.0, 1288.0, image=image_image_17)
-
-image_image_18 = PhotoImage(file=relative_to_assets("image_18.png"))
-image_18 = canvas.create_image(1526.0, 73.0, image=image_image_18)
-
-image_image_19 = PhotoImage(file=relative_to_assets("image_19.png"))
-image_19 = canvas.create_image(1854.0, 73.0, image=image_image_19)
 
 # Tlacitko 9 NAPOVEDA
 button_image_9_path = relative_to_assets("button_9.png")
@@ -283,74 +258,182 @@ button_11_canvas = canvas.create_image(406, 182, image=button_11_photo, anchor="
 canvas.tag_bind(button_11_canvas, "<Button-1>", lambda event: (on_button_press(event, button_11_canvas, button_11_pressed_photo, "Button 11"), Thread(target=start_motor_sequence, args=(big_motor, "down")).start()))
 canvas.tag_bind(button_11_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_11_canvas, button_11_photo, "Button 11"))
 
+image_image_8 = PhotoImage(file=relative_to_assets("image_8.png"))
+image_8 = canvas.create_image(1183.0, 324.0, image=image_image_8)
+
+image_image_9 = PhotoImage(file=relative_to_assets("image_9.png"))
+image_9 = canvas.create_image(1366.0, 591.0, image=image_image_9)
+
+image_image_10 = PhotoImage(file=relative_to_assets("image_10.png"))
+image_10 = canvas.create_image(957, 315, image=image_image_10)
+
+image_image_11 = PhotoImage(file=relative_to_assets("image_11.png"))
+image_11 = canvas.create_image(1576.0, 614.0, image=image_image_11)
+
+image_image_12 = PhotoImage(file=relative_to_assets("image_12.png"))
+image_12 = canvas.create_image(1320.0, 409.0, image=image_image_12)
+
+image_image_13 = PhotoImage(file=relative_to_assets("image_13.png"))
+image_13 = canvas.create_image(1567.0, 1057.0, image=image_image_13)
+
+image_image_14 = PhotoImage(file=relative_to_assets("image_14.png"))
+image_14 = canvas.create_image(1543.0, 1184.0, image=image_image_14)
+
+image_image_15 = PhotoImage(file=relative_to_assets("image_15.png"))
+image_15 = canvas.create_image(1543.0, 1300.0, image=image_image_15)
+
+image_image_16 = PhotoImage(file=relative_to_assets("image_16.png"))
+image_16 = canvas.create_image(2164.5106201171875, 470.0, image=image_image_16)
+
+image_image_18 = PhotoImage(file=relative_to_assets("image_18.png"))
+image_18 = canvas.create_image(1526.0, 73.0, image=image_image_18)
+
+image_image_19 = PhotoImage(file=relative_to_assets("image_19.png"))
+image_19 = canvas.create_image(1854.0, 73.0, image=image_image_19)
+
 image_image_21 = PhotoImage(file=relative_to_assets("image_21.png"))
 image_21 = canvas.create_image(1051.0, 1254.0, image=image_image_21)
 
+image_image_22 = PhotoImage(file=relative_to_assets("image_22.png"))
+image_22 = canvas.create_image(940.999986493181, 475.0, image=image_image_22)
+
+#Natočení páky 1
 canvas.create_text(
-     1261.0,
-    297.0,
+    1267,
+    300,
     anchor="nw",  # 'ne' stands for North-East, which aligns the text to the right
     text="20,46",
     fill="#000000",
     font=("Arial", 40 * -1, "bold")  # Correctly specify the font weight
 )
-
+#Natočení páky 2
 canvas.create_text(
-    1261.0,
-    383.0,
+    1267,
+    386,
     anchor="nw",
     text="18,46",
     fill="#000000",
     font=("Arial", 40 * -1, "bold")
 )
-
+#Natočení kola
 canvas.create_text(
-    1129.0,
-    1227.0,
+    1135,
+    1230,
     anchor="nw",
     text="20,46",
     fill="#000000",
-    font=("RobotoRoman Bold", 40 * -1)
+    font=("Arial", 40 * -1, "bold")
 )
 
-image_image_22 = PhotoImage(file=relative_to_assets("image_22.png"))
-image_22 = canvas.create_image(940.999986493181, 475.0, image=image_image_22)
+# Funkce pro validaci názvu souboru
+def validate_nazev(nazev_value):    
+    return not bool(re.search(r'[\/\\:*"?<>|]', nazev_value)) #Povolené znaky: Všechno kromě / \ : * " ? < > |
+# Registrace validační funkce
+validate_filename_command = window.register(validate_nazev)
 
-canvas.create_text(
-    1487.0,
-    611.0,
-    anchor="nw",
-    text="40,5",
-    fill="#000000",
-    font=("RobotoRoman Bold", 36 * -1)
-)
+# Funkce pro nastavení a odstranění placeholderu
+def set_placeholder(entry, placeholder_text):
+    entry.insert(0, placeholder_text)
+    entry.config(fg='grey')
 
-canvas.create_text(
-    1411.0,
-    1295.0,
-    anchor="nw",
-    text="175,5",
-    fill="#000000",
-    font=("RobotoRoman Bold", 32 * -1)
-)
+def clear_placeholder(event, entry, placeholder_text):
+    if entry.get() == placeholder_text:
+        entry.delete(0, tk.END)
+        entry.config(fg='black')
 
+def restore_placeholder(event, entry, placeholder_text):
+    if entry.get() == '':
+        entry.insert(0, placeholder_text)
+        entry.config(fg='grey')
+
+#Zadat název
+entry_nazev = Entry(window, font=("Arial", 32, "italic"), bd=0, highlightthickness=0, relief="flat", validate="key", validatecommand=(validate_filename_command, "%P"))
+entry_nazev.place(x=1319, y=50, width=416)
+set_placeholder(entry_nazev, "Zadej název") #Placeholder pro název měření
+
+entry_nazev.bind("<FocusIn>", lambda event: clear_placeholder(event, entry_nazev, "Zadej název"))
+entry_nazev.bind("<FocusOut>", lambda event: restore_placeholder(event, entry_nazev, "Zadej název"))
+
+def get_nazev(event=None):
+    nazev= entry_nazev.get()
+    print(f"Název: {nazev}")
+    window.focus_set()
+
+entry_nazev.bind("<Return>", get_nazev)
+entry_nazev.bind("<KP_Enter>", get_nazev)
+
+#Zadat datum
+entry_datum = Entry(window, font=("Arial", 32, "italic"), bd=0, highlightthickness=0, relief="flat", validate="key", validatecommand=(validate_filename_command, "%P"))
+entry_datum.place(x=1754+5, y=50, width=193)
+set_placeholder(entry_datum, "Datum") #Placeholder pro název měření
+
+entry_datum.bind("<FocusIn>", lambda event: clear_placeholder(event, entry_datum, "Datum"))
+entry_datum.bind("<FocusOut>", lambda event: restore_placeholder(event, entry_datum, "Datum"))
+
+def get_datum(event=None):
+    datum= entry_datum.get()
+    print(f"Datum: {datum}")
+    window.focus_set()
+
+entry_datum.bind("<Return>", get_datum)
+entry_datum.bind("<KP_Enter>", get_datum)
+
+#Hmotnost - zadat
+entry_var = StringVar()
+validate_command = window.register(validate_numeric_input)
+entry_hmotnost = Entry(window, font=("Arial", 36*-1, "bold"), bd=0, highlightthickness=0, relief="flat", justify="center", textvariable=entry_var, validate="key", validatecommand=(validate_command, "%P"))
+entry_hmotnost.place(x=1425, y=616, width=188)
+
+def get_hmotnost_value(event=None):
+    try:
+        hmotnost = float(entry_hmotnost.get().replace(',', '.'))  # Převod řetězce na float
+        print(f"Hmotnost: {hmotnost}") #Můžeš zkusit přenásobit číslem pro kontrolu, že to je fakt číslo
+    except ValueError:
+        print("Zadaná hodnota není platné číslo.")
+    window.focus_set()  # Přesun fokusu na hlavní okno
+
+entry_hmotnost.bind("<Return>", get_hmotnost_value)
+entry_hmotnost.bind("<KP_Enter>", get_hmotnost_value)
+
+# Osová vzdálenost - zadat
+entry_os_vzdalenost_var = StringVar()
+entry_os_vzdalenost = Entry(window, font=("Arial", 36 * -1, "bold"), bd=0, highlightthickness=0, relief="flat", justify="center", textvariable=entry_os_vzdalenost_var, validate="key", validatecommand=(validate_command, "%P"))
+entry_os_vzdalenost.place(x=1416, y=1058, width=164)
+
+def get_os_vzdalenost_value(event=None):
+    try:
+        os_vzdalenost = float(entry_os_vzdalenost.get().replace(',', '.'))
+        print(f"Osová vzdálenost: {os_vzdalenost*10}")
+    except ValueError:
+        print("Zadaná hodnota není platné číslo.")
+    window.focus_set()  # Přesun fokusu na hlavní okno
+    
+entry_os_vzdalenost.bind("<Return>", get_os_vzdalenost_value)
+entry_os_vzdalenost.bind("<KP_Enter>", get_os_vzdalenost_value)
+
+#Lankový snímač
 canvas.create_text(
-    1440.0,
-    1178.0,
+    1475,
+    1184,
     anchor="nw",
     text="160,5",
     fill="#000000",
-    font=("RobotoRoman Bold", 32 * -1)
+    font=("Arial", 32 * -1, "bold")
 )
-
+#Laserový snímač
 canvas.create_text(
-    1457.0,
-    1052.0,
+    1475,
+    1301,
     anchor="nw",
-    text="150,5",
+    text="175,5",
     fill="#000000",
-    font=("RobotoRoman Bold", 36 * -1)
+    font=("Arial", 32 * -1, "bold")
 )
+def close_window(event=None):
+    window.destroy()
+
+# Bind klávesy "Q" pro zavření okna
+window.bind("<q>", close_window)
 
 #window.resizable(False, False)
 window.mainloop()
