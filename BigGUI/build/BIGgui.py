@@ -2,12 +2,12 @@ from pathlib import Path
 from tkinter import Tk, Canvas, Entry, Text, PhotoImage
 from PIL import Image, ImageTk
 from stepper import Stepper_motor
-
+from threading import Thread
 
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / "assets" / "frame0"
 
-STEPS_big_motor = 800
+STEPS_big_motor = 400
 STEPS_small_motor = 400
 
 #myMotor = Stepper_motor(STEP/PUL, DIR, ENABLE, Delay, STEPS)
@@ -35,6 +35,12 @@ def end_fullscreen(event=None):
     window.state = False
     window.attributes("-fullscreen", False)
     return "break"
+
+def start_motor_sequence(motor, direction):
+    if direction == "up":
+        motor.sekvence_up(None)
+    else:
+        motor.sekvence_down()
 
 window.bind("<F11>", toggle_fullscreen)
 window.bind("<Escape>", end_fullscreen)
@@ -95,7 +101,7 @@ def on_button_release(event, button_canvas, photo, button_name):
     canvas.move(button_canvas, -4, -4)
     print(f"{button_name} released")
 
-# Tlacitko 1
+# Tlacitko 1 Natoceni motoru nahoru
 button_image_1_path = relative_to_assets("button_1.png")
 button_image_1_pressed_path = relative_to_assets("button_1_pressed.png")
 button_image_1 = Image.open(button_image_1_path).convert("RGBA")
@@ -107,7 +113,7 @@ button_1_canvas = canvas.create_image(57, 435, image=button_1_photo, anchor="nw"
 canvas.tag_bind(button_1_canvas, "<Button-1>", lambda event: (on_button_press(event, button_1_canvas, button_1_pressed_photo, "Button 1"), big_motor.on_button_press_forward(event)))
 canvas.tag_bind(button_1_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_1_canvas, button_1_photo, "Button 1"), big_motor.on_button_release_forward(event)))
 
-# Tlacitko 2
+# Tlacitko 2 Natoceni motoru dolu
 button_image_2_path = relative_to_assets("button_2.png")
 button_image_2_pressed_path = relative_to_assets("button_2_pressed.png")
 button_image_2 = Image.open(button_image_2_path).convert("RGBA")
@@ -125,7 +131,7 @@ image_6 = canvas.create_image(1350.0, 888.9998418521883, image=image_image_6)
 image_image_7 = PhotoImage(file=relative_to_assets("image_7.png"))
 image_7 = canvas.create_image(1567.0, 897.0, image=image_image_7)
 
-# Tlacitko 3
+# Tlacitko 3 OS+
 button_image_3_path = relative_to_assets("button_3.png")
 button_image_3_pressed_path = relative_to_assets("button_3_pressed.png")
 button_image_3 = Image.open(button_image_3_path).convert("RGBA")
@@ -137,7 +143,7 @@ button_3_canvas = canvas.create_image(1417, 880, image=button_3_photo, anchor="n
 canvas.tag_bind(button_3_canvas, "<Button-1>", lambda event: (on_button_press(event, button_3_canvas, button_3_pressed_photo, "Button 3"), small_motor.on_button_press_forward(event)))
 canvas.tag_bind(button_3_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_3_canvas, button_3_photo, "Button 3"), small_motor.on_button_release_forward(event)))
 
-# Tlacitko 4
+# Tlacitko 4 OS+
 button_image_4_path = relative_to_assets("button_4.png")
 button_image_4_pressed_path = relative_to_assets("button_4_pressed.png")
 button_image_4 = Image.open(button_image_4_path).convert("RGBA")
@@ -149,7 +155,7 @@ button_4_canvas = canvas.create_image(1624, 880, image=button_4_photo, anchor="n
 canvas.tag_bind(button_4_canvas, "<Button-1>", lambda event: (on_button_press(event, button_4_canvas, button_4_pressed_photo, "Button 4"), small_motor.on_button_press_backward(event)))
 canvas.tag_bind(button_4_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_4_canvas, button_4_photo, "Button 4"), small_motor.on_button_release_backward(event)))
 
-# Tlacitko 5
+# Tlacitko 5 HOME
 button_image_5_path = relative_to_assets("button_5.png")
 button_image_5_pressed_path = relative_to_assets("button_5_pressed.png")
 button_image_5 = Image.open(button_image_5_path).convert("RGBA")
@@ -161,7 +167,7 @@ button_5_canvas = canvas.create_image(959, 169, image=button_5_photo, anchor="nw
 canvas.tag_bind(button_5_canvas, "<Button-1>", lambda event: on_button_press(event, button_5_canvas, button_5_pressed_photo, "Button 5"))
 canvas.tag_bind(button_5_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_5_canvas, button_5_photo, "Button 5"))
 
-# Tlacitko 6
+# Tlacitko 6 NULOVAT
 button_image_6_path = relative_to_assets("button_6.png")
 button_image_6_pressed_path = relative_to_assets("button_6_pressed.png")
 button_image_6 = Image.open(button_image_6_path).convert("RGBA")
@@ -188,7 +194,7 @@ image_11 = canvas.create_image(1576.0, 614.0, image=image_image_11)
 image_image_12 = PhotoImage(file=relative_to_assets("image_12.png"))
 image_12 = canvas.create_image(1320.0, 409.0, image=image_image_12)
 
-# Tlacitko 7
+# Tlacitko 7 STOP
 button_image_7_path = relative_to_assets("button_7.png")
 button_image_7_pressed_path = relative_to_assets("button_7_pressed.png")
 button_image_7 = Image.open(button_image_7_path).convert("RGBA")
@@ -200,7 +206,7 @@ button_7_canvas = canvas.create_image(2269, 17, image=button_7_photo, anchor="nw
 canvas.tag_bind(button_7_canvas, "<Button-1>", lambda event: on_button_press(event, button_7_canvas, button_7_pressed_photo, "Button 7"))
 canvas.tag_bind(button_7_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_7_canvas, button_7_photo, "Button 7"))
 
-# Tlacitko 8
+# Tlacitko 8 ULOZIT
 button_image_8_path = relative_to_assets("button_8.png")
 button_image_8_pressed_path = relative_to_assets("button_8_pressed.png")
 button_image_8 = Image.open(button_image_8_path).convert("RGBA")
@@ -233,7 +239,7 @@ image_18 = canvas.create_image(1526.0, 73.0, image=image_image_18)
 image_image_19 = PhotoImage(file=relative_to_assets("image_19.png"))
 image_19 = canvas.create_image(1854.0, 73.0, image=image_image_19)
 
-# Tlacitko 9
+# Tlacitko 9 NAPOVEDA
 button_image_9_path = relative_to_assets("button_9.png")
 button_image_9_pressed_path = relative_to_assets("button_9_pressed.png")
 button_image_9 = Image.open(button_image_9_path).convert("RGBA")
@@ -248,7 +254,7 @@ canvas.tag_bind(button_9_canvas, "<ButtonRelease-1>", lambda event: on_button_re
 image_image_20 = PhotoImage(file=relative_to_assets("image_20.png"))
 image_20 = canvas.create_image(2164.5106201171875, 1073.0, image=image_image_20)
 
-# Tlacitko 10
+# Tlacitko 10 SEKVENCE UP
 button_image_10_path = relative_to_assets("button_10.png")
 button_image_10_pressed_path = relative_to_assets("button_10_pressed.png")
 button_image_10 = Image.open(button_image_10_path).convert("RGBA")
@@ -257,12 +263,10 @@ button_10_pressed = Image.open(button_image_10_pressed_path).convert("RGBA")
 button_10_pressed_photo = ImageTk.PhotoImage(button_10_pressed)
 button_10_canvas = canvas.create_image(26, 182, image=button_10_photo, anchor="nw")
 
-
-
-canvas.tag_bind(button_10_canvas, "<Button-1>", lambda event: (on_button_press(event, button_10_canvas, button_10_pressed_photo, "Button 10"), big_motor.sekvence_up(event)))
+canvas.tag_bind(button_10_canvas, "<Button-1>", lambda event: (on_button_press(event, button_10_canvas, button_10_pressed_photo, "Button 10"), Thread(target=start_motor_sequence, args=(big_motor, "up")).start()))
 canvas.tag_bind(button_10_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_10_canvas, button_10_photo, "Button 10"))
 
-# Tlacitko 11
+# Tlacitko 11 SEKVENCE DOWN
 button_image_11_path = relative_to_assets("button_11.png")
 button_image_11_pressed_path = relative_to_assets("button_11_pressed.png")
 button_image_11 = Image.open(button_image_11_path).convert("RGBA")
@@ -271,7 +275,7 @@ button_11_pressed = Image.open(button_image_11_pressed_path).convert("RGBA")
 button_11_pressed_photo = ImageTk.PhotoImage(button_11_pressed)
 button_11_canvas = canvas.create_image(406, 182, image=button_11_photo, anchor="nw")
 
-canvas.tag_bind(button_11_canvas, "<Button-1>", lambda event: (on_button_press(event, button_11_canvas, button_11_pressed_photo, "Button 11"), big_motor.sekvence_down()))
+canvas.tag_bind(button_11_canvas, "<Button-1>", lambda event: (on_button_press(event, button_11_canvas, button_11_pressed_photo, "Button 11"), Thread(target=start_motor_sequence, args=(big_motor, "down")).start()))
 canvas.tag_bind(button_11_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_11_canvas, button_11_photo, "Button 11"))
 
 image_image_21 = PhotoImage(file=relative_to_assets("image_21.png"))
