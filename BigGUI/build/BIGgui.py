@@ -259,7 +259,7 @@ button_10_canvas = canvas.create_image(26, 182, image=button_10_photo, anchor="n
 
 
 
-canvas.tag_bind(button_10_canvas, "<Button-1>", lambda event: (on_button_press(event, button_10_canvas, button_10_pressed_photo, "Button 10"), big_motor.rotate(-steps_to_rotate)))
+canvas.tag_bind(button_10_canvas, "<Button-1>", lambda event: (on_button_press(event, button_10_canvas, button_10_pressed_photo, "Button 10"), big_motor.sekvence_up(event)))
 canvas.tag_bind(button_10_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_10_canvas, button_10_photo, "Button 10"))
 
 # Tlacitko 11
@@ -271,7 +271,7 @@ button_11_pressed = Image.open(button_image_11_pressed_path).convert("RGBA")
 button_11_pressed_photo = ImageTk.PhotoImage(button_11_pressed)
 button_11_canvas = canvas.create_image(406, 182, image=button_11_photo, anchor="nw")
 
-canvas.tag_bind(button_11_canvas, "<Button-1>", lambda event: (on_button_press(event, button_11_canvas, button_11_pressed_photo, "Button 11"), big_motor.rotate(steps_to_rotate)))
+canvas.tag_bind(button_11_canvas, "<Button-1>", lambda event: (on_button_press(event, button_11_canvas, button_11_pressed_photo, "Button 11"), big_motor.sekvence_down()))
 canvas.tag_bind(button_11_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_11_canvas, button_11_photo, "Button 11"))
 
 image_image_21 = PhotoImage(file=relative_to_assets("image_21.png"))
