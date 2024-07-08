@@ -3,6 +3,7 @@ from tkinter import Tk, Canvas, Entry, Text, PhotoImage
 from PIL import Image, ImageTk
 from stepper import Stepper_motor
 from threading import Thread
+import RPi.GPIO as GPIO
 
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / "assets" / "frame0"
@@ -11,11 +12,11 @@ STEPS_big_motor = 400
 STEPS_small_motor = 400
 
 #myMotor = Stepper_motor(STEP/PUL, DIR, ENABLE, Delay, STEPS)
-big_motor = Stepper_motor(17, 27, 22, 0.001, STEPS_big_motor)
-small_motor = Stepper_motor(16, 20, 21, 0.001, STEPS_small_motor)
+big_motor = Stepper_motor(17, 27, 22, 0.001, STEPS_big_motor, 12)
+small_motor = Stepper_motor(16, 20, 21, 0.001, STEPS_small_motor, 23)
 
-uhel_sekvence=90
-steps_to_rotate=STEPS_big_motor/360*uhel_sekvence
+#uhel_sekvence=90
+#steps_to_rotate=STEPS_big_motor/360*uhel_sekvence
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
@@ -41,6 +42,10 @@ def start_motor_sequence(motor, direction):
         motor.sekvence_up(None)
     else:
         motor.sekvence_down()
+
+def home(event):
+    print("Home button pressed")
+    Thread(target=big_motor.start_motor, args=(GPIO.LOW,)).start()
 
 window.bind("<F11>", toggle_fullscreen)
 window.bind("<Escape>", end_fullscreen)
@@ -164,8 +169,8 @@ button_5_pressed = Image.open(button_image_5_pressed_path).convert("RGBA")
 button_5_pressed_photo = ImageTk.PhotoImage(button_5_pressed)
 button_5_canvas = canvas.create_image(959, 169, image=button_5_photo, anchor="nw")
 
-canvas.tag_bind(button_5_canvas, "<Button-1>", lambda event: on_button_press(event, button_5_canvas, button_5_pressed_photo, "Button 5"))
-canvas.tag_bind(button_5_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_5_canvas, button_5_photo, "Button 5"))
+canvas.tag_bind(button_5_canvas, "<Button-1>", lambda event: (on_button_press(event, button_5_canvas, button_5_pressed_photo, "Home"), home(event)))
+canvas.tag_bind(button_5_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_5_canvas, button_5_photo, "Home"))
 
 # Tlacitko 6 NULOVAT
 button_image_6_path = relative_to_assets("button_6.png")
