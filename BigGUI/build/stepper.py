@@ -56,7 +56,7 @@ class Stepper_motor:
         self.motor_running = False
         
     def sekvence_up(self, event):
-        steps = self.steps / 360 * 360  # otočení o 90 stupňů
+        steps = self.steps / 360 * 360 *105.23 # otočení o 90 stupňů
         self.motor_running = True
         motor_thread = Thread(target=self.step_motor, args=(GPIO.HIGH, steps))
         motor_thread.start()
@@ -64,7 +64,7 @@ class Stepper_motor:
         self.motor_running = False 
 
     def sekvence_down(self):
-        steps = self.steps / 360 * 90  # otočení o 90 stupňů
+        steps = self.steps / 360 * 90 *105.23 # otočení o 90 stupňů
         self.motor_running = True
         motor_thread = Thread(target=self.step_motor, args=(GPIO.LOW, steps))
         motor_thread.start()

@@ -2,9 +2,9 @@ import RPi.GPIO as GPIO
 import time
 
 # Pin definitions
-ZeroPin = 13  # GPIO pin for Z channel (zero detection)
-COSPin = 5   # GPIO pin for A channel (cos signal) 
-SINPin = 6   # GPIO pin for B channel (sin signal)  
+ZeroPin = 2  # GPIO pin for Z channel (zero detection)
+COSPin = 3   # GPIO pin for A channel (cos signal) 
+SINPin = 4   # GPIO pin for B channel (sin signal)  
 
 # variables
 ENC_STOP = 0

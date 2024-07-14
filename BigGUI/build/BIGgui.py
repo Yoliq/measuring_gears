@@ -6,6 +6,9 @@ from stepper import Stepper_motor
 from threading import Thread
 import RPi.GPIO as GPIO
 import re 
+import camera
+import cv2
+from time import sleep
 
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / "assets" / "frame0"
@@ -55,6 +58,39 @@ def home(event):
     print("Home button pressed")
     Thread(target=big_motor.start_motor, args=(GPIO.LOW,)).start()
 
+def fetch_frame():
+    while True:
+        frame = cam.get_frame()
+        if frame is not None:
+            window.frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        sleep(0.03)  # Přidání zpoždění pro snížení zatížení CPU
+
+def update_frame():
+    if hasattr(window, 'frame') and window.frame is not None:
+        try:
+            frame = cv2.resize(window.frame, (704, 461))
+            photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
+            canvas.create_image(cmx, cmy, image=photo, anchor=tk.NW)
+            window.photo = photo  # Uchování reference na obraz
+        except Exception as e:
+            print(f"Error updating frame: {e}")
+    window.after(33, update_frame)  # Cca 30 fps
+
+def start_recording():
+    cam.start_recording()
+
+def stop_recording():
+    cam.stop_recording()
+
+def on_closing():
+    cam.release()
+    window.destroy()
+
+# Inicializace kamery a spuštění náhledu při spuštění programu
+cam = camera.Camera()
+
+
+window.protocol("WM_DELETE_WINDOW", on_closing)
 window.bind("<F11>", toggle_fullscreen)
 window.bind("<Escape>", end_fullscreen)
 window.bind("<Button-3>", end_fullscreen)  # Bind right mouse button
@@ -231,8 +267,13 @@ button_9_canvas = canvas.create_image(534, 1272, image=button_9_photo, anchor="n
 canvas.tag_bind(button_9_canvas, "<Button-1>", lambda event: on_button_press(event, button_9_canvas, button_9_pressed_photo, "Button 9"))
 canvas.tag_bind(button_9_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_9_canvas, button_9_photo, "Button 9"))
 
+#Kamera
 image_image_20 = PhotoImage(file=relative_to_assets("image_20.png"))
 image_20 = canvas.create_image(2164.5106201171875, 1073.0, image=image_image_20)
+cmx=1810.98
+cmy=867.06-17
+cam_window = canvas.create_rectangle(cmx, cmy, cmx+704.05, cmy+460.9, fill="gray", outline="")
+
 
 # Tlacitko 10 SEKVENCE UP
 button_image_10_path = relative_to_assets("button_10.png")
@@ -432,8 +473,17 @@ canvas.create_text(
 def close_window(event=None):
     window.destroy()
 
+# Inicializace náhledu
+window.after(0, update_frame)
+
+# Spuštění vlákna pro získávání snímků
+thread = Thread(target=fetch_frame, daemon=True)
+thread.start()
+
+
 # Bind klávesy "Q" pro zavření okna
 window.bind("<q>", close_window)
 
-#window.resizable(False, False)
+#window.resizable
+# (False, False)
 window.mainloop()
