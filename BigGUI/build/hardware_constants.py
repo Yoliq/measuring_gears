@@ -47,5 +47,10 @@ LIDAR_I2C_ADDRESS = 0x52
 # TODO Distance wire sensor via I2C
 DISTANCE_WIRE_SENSOR_I2C_ADDRESS = 0
 
-# TODO Camera information
-
+#Camera information
+''' 
+Camera model: Havit HN07P
+1280x720 @30 FPS
+USB 2.0
+more info: https://image.alza.cz/Images/users/15964119/reviews/standard/4f2f10b1-b1c8-42ab-84fd-86d7f3aef9f3.jpg?width=800&height=800
+''' 
