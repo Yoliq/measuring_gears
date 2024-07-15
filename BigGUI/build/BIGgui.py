@@ -8,7 +8,7 @@ import RPi.GPIO as GPIO
 import re 
 import camera
 import cv2
-from time import sleep
+import time
 
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / "assets" / "frame0"
@@ -58,23 +58,17 @@ def home(event):
     print("Home button pressed")
     Thread(target=big_motor.start_motor, args=(GPIO.LOW,)).start()
 
-def fetch_frame():
+def update_frame():
     while True:
         frame = cam.get_frame()
         if frame is not None:
-            window.frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        sleep(0.03)  # Přidání zpoždění pro snížení zatížení CPU
-
-def update_frame():
-    if hasattr(window, 'frame') and window.frame is not None:
-        try:
-            frame = cv2.resize(window.frame, (704, 461))
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            frame = cv2.resize(frame, (704, 461))
             photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
             canvas.create_image(cmx, cmy, image=photo, anchor=tk.NW)
             window.photo = photo  # Uchování reference na obraz
-        except Exception as e:
-            print(f"Error updating frame: {e}")
-    window.after(33, update_frame)  # Cca 30 fps
+        window.update_idletasks()
+        window.update()
 
 def start_recording():
     cam.start_recording()
@@ -473,11 +467,8 @@ canvas.create_text(
 def close_window(event=None):
     window.destroy()
 
-# Inicializace náhledu
-window.after(0, update_frame)
-
-# Spuštění vlákna pro získávání snímků
-thread = Thread(target=fetch_frame, daemon=True)
+# Spuštění aktualizace náhledu v novém vlákně
+thread = Thread(target=update_frame, daemon=True)
 thread.start()
 
 
