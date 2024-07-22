@@ -8,7 +8,7 @@ GPIO.setwarnings(False)
 
 
 class Stepper_motor:
-    def __init__(self, STEP_PIN, DIR_PIN, ENABLE_PIN, SPEED, STEPS, END_STOP_PIN):
+    def __init__(self, STEP_PIN, DIR_PIN, ENABLE_PIN, SPEED, STEPS, END_STOP_PIN=None):
         self.step_pin = STEP_PIN
         self.dir_pin = DIR_PIN
         self.enable_pin = ENABLE_PIN
@@ -38,6 +38,15 @@ class Stepper_motor:
             if GPIO.input(self.end_stop_pin) == GPIO.LOW:  # Koncový spínač je stisknutý
                 print("End stop reached!")
                 self.stop_motor()
+                time.sleep(0.1)
+                cuknuti = self.steps / 360 *105.23*1.5 # otočení o 1,5 stupňů
+                GPIO.output(self.dir_pin, GPIO.HIGH)
+                for _ in range(int(cuknuti)):
+                    GPIO.output(self.step_pin, GPIO.HIGH)
+                    time.sleep(self.speed)
+                    GPIO.output(self.step_pin, GPIO.LOW)
+                    time.sleep(self.speed)
+                self.motor_running = False
                 break
             GPIO.output(self.step_pin, GPIO.HIGH)
             time.sleep(self.speed)
@@ -56,7 +65,7 @@ class Stepper_motor:
         self.motor_running = False
         
     def sekvence_up(self, event):
-        steps = self.steps / 360 * 360 *105.23 # otočení o 90 stupňů
+        steps = self.steps / 360 *105.23 *45  # otočení o 90 stupňů
         self.motor_running = True
         motor_thread = Thread(target=self.step_motor, args=(GPIO.HIGH, steps))
         motor_thread.start()
@@ -64,7 +73,7 @@ class Stepper_motor:
         self.motor_running = False 
 
     def sekvence_down(self):
-        steps = self.steps / 360 * 90 *105.23 # otočení o 90 stupňů
+        steps = self.steps / 360 *105.23 *45  # otočení o 90 stupňů
         self.motor_running = True
         motor_thread = Thread(target=self.step_motor, args=(GPIO.LOW, steps))
         motor_thread.start()
