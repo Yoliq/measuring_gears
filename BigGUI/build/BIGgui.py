@@ -9,9 +9,17 @@ import re
 import camera
 import cv2
 import time
+from serial_read import SerialReader
+from multiprocessing import Process, Queue
 
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / "assets" / "frame0"
+
+# Inicializace SerialReader
+serial_reader = SerialReader('/dev/ttyUSB0', 115200)
+serial_reader.start_reading()
+
+
 
 STEPS_big_motor = 400
 STEPS_small_motor = 400
@@ -48,6 +56,25 @@ def end_fullscreen(event=None):
     window.attributes("-fullscreen", False)
     return "break"
 
+# Proměnná pro uchování hodnoty natočení páky
+natoceni_paky = StringVar()
+natoceni_paky.set("Čekám")  # Původní hodnota
+
+# Aktualizace hodnoty natočení páky
+def update_angle():
+    natoceni_paky.set(serial_reader.get_formatted_angle())
+    window.after(100, update_angle)  # Aktualizace každých 100 ms
+
+def zero_angle():
+    try:
+        current_angle = float(natoceni_paky.get())
+        serial_reader.zero_angle(current_angle)
+    except ValueError:
+        pass  # Pokud není možné získat aktuální úhel, ignorujeme chybu
+
+# Zahájení aktualizace hodnoty natočení páky
+update_angle()
+
 def start_motor_sequence(motor, direction):
     if direction == "up":
         motor.sekvence_up(None)
@@ -58,36 +85,36 @@ def home(event):
     print("Home button pressed")
     Thread(target=big_motor.start_motor, args=(GPIO.LOW,)).start()
 
-def update_frame():
-    while True:
-        frame = cam.get_frame()
+def update_frame(queue):
+    if not queue.empty():
+        frame = queue.get()
         if frame is not None:
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             frame = cv2.resize(frame, (704, 461))
             photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
             canvas.create_image(cmx, cmy, image=photo, anchor=tk.NW)
-            window.photo = photo  # Uchování reference na obraz
-        window.update_idletasks()
-        window.update()
+            window.photo = photo
+    window.after(33, update_frame, queue)  # Cca 30 fps
 
 def start_recording():
-    cam.start_recording()
+    recording_queue.put(True)
 
 def stop_recording():
-    cam.stop_recording()
+    recording_queue.put(False)
 
 def on_closing():
-    cam.release()
+    recording_queue.put(False)  # Zastavit nahrávání, pokud běží
+    process.terminate()  # Ukončit proces kamery
+    process.join()  # Počkat na ukončení procesu
     window.destroy()
 
 # Inicializace kamery a spuštění náhledu při spuštění programu
 cam = camera.Camera()
 
-
 window.protocol("WM_DELETE_WINDOW", on_closing)
 window.bind("<F11>", toggle_fullscreen)
 window.bind("<Escape>", end_fullscreen)
 window.bind("<Button-3>", end_fullscreen)  # Bind right mouse button
+
 
 # Initially start in fullscreen mode
 window.state = True
@@ -219,7 +246,7 @@ button_6_pressed = Image.open(button_image_6_pressed_path).convert("RGBA")
 button_6_pressed_photo = ImageTk.PhotoImage(button_6_pressed)
 button_6_canvas = canvas.create_image(1208, 166, image=button_6_photo, anchor="nw")
 
-canvas.tag_bind(button_6_canvas, "<Button-1>", lambda event: on_button_press(event, button_6_canvas, button_6_pressed_photo, "Button 6"))
+canvas.tag_bind(button_6_canvas, "<Button-1>", lambda event: (on_button_press(event, button_6_canvas, button_6_pressed_photo, "Button 6"), zero_angle()))
 canvas.tag_bind(button_6_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_6_canvas, button_6_photo, "Button 6"))
 
 # Tlacitko 7 STOP
@@ -293,14 +320,14 @@ button_11_canvas = canvas.create_image(406, 182, image=button_11_photo, anchor="
 canvas.tag_bind(button_11_canvas, "<Button-1>", lambda event: (on_button_press(event, button_11_canvas, button_11_pressed_photo, "Button 11"), Thread(target=start_motor_sequence, args=(big_motor, "down")).start()))
 canvas.tag_bind(button_11_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_11_canvas, button_11_photo, "Button 11"))
 
+image_image_10 = PhotoImage(file=relative_to_assets("image_10.png"))
+image_10 = canvas.create_image(957, 315, image=image_image_10)
+
 image_image_8 = PhotoImage(file=relative_to_assets("image_8.png"))
 image_8 = canvas.create_image(1183.0, 324.0, image=image_image_8)
 
 image_image_9 = PhotoImage(file=relative_to_assets("image_9.png"))
 image_9 = canvas.create_image(1366.0, 591.0, image=image_image_9)
-
-image_image_10 = PhotoImage(file=relative_to_assets("image_10.png"))
-image_10 = canvas.create_image(957, 315, image=image_image_10)
 
 image_image_11 = PhotoImage(file=relative_to_assets("image_11.png"))
 image_11 = canvas.create_image(1576.0, 614.0, image=image_image_11)
@@ -312,10 +339,10 @@ image_image_13 = PhotoImage(file=relative_to_assets("image_13.png"))
 image_13 = canvas.create_image(1567.0, 1057.0, image=image_image_13)
 
 image_image_14 = PhotoImage(file=relative_to_assets("image_14.png"))
-image_14 = canvas.create_image(1543.0, 1184.0, image=image_image_14)
+image_14 = canvas.create_image(1567, 1184.0, image=image_image_14)
 
 image_image_15 = PhotoImage(file=relative_to_assets("image_15.png"))
-image_15 = canvas.create_image(1543.0, 1300.0, image=image_image_15)
+image_15 = canvas.create_image(1567, 1300.0, image=image_image_15)
 
 image_image_16 = PhotoImage(file=relative_to_assets("image_16.png"))
 image_16 = canvas.create_image(2164.5106201171875, 470.0, image=image_image_16)
@@ -333,29 +360,25 @@ image_image_22 = PhotoImage(file=relative_to_assets("image_22.png"))
 image_22 = canvas.create_image(940.999986493181, 475.0, image=image_image_22)
 
 #Natočení páky 1
-canvas.create_text(
-    1267,
-    300,
-    anchor="nw",  # 'ne' stands for North-East, which aligns the text to the right
-    text="20,46",
-    fill="#000000",
-    font=("Arial", 40 * -1, "bold")  # Correctly specify the font weight
-)
+angle_label = tk.Label(window, textvariable=natoceni_paky, justify='right', bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
+angle_label.place(x=1256, y=300)
+
+
 #Natočení páky 2
 canvas.create_text(
-    1267,
+    1267-11,
     386,
     anchor="nw",
-    text="18,46",
+    text="318,46",
     fill="#000000",
     font=("Arial", 40 * -1, "bold")
 )
 #Natočení kola
 canvas.create_text(
-    1135,
+    1135-11,
     1230,
     anchor="nw",
-    text="20,46",
+    text="360,46",
     fill="#000000",
     font=("Arial", 40 * -1, "bold")
 )
@@ -465,11 +488,27 @@ canvas.create_text(
     font=("Arial", 32 * -1, "bold")
 )
 def close_window(event=None):
-    window.destroy()
+    on_closing()  # Zavolat funkci on_closing pro správné ukončení
 
-# Spuštění aktualizace náhledu v novém vlákně
-thread = Thread(target=update_frame, daemon=True)
-thread.start()
+
+def update_frame(queue):
+    if not queue.empty():
+        frame = queue.get()
+        if frame is not None:
+            frame = cv2.resize(frame, (704, 461))
+            photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
+            canvas.create_image(cmx, cmy, image=photo, anchor=tk.NW)
+            window.photo = photo
+    window.after(33, update_frame, queue)  # Cca 30 fps
+
+# Inicializace fronty a spuštění video procesu
+frame_queue = Queue()
+recording_queue = Queue()
+process = Process(target=camera.video_process, args=(frame_queue, recording_queue))
+process.start()
+
+# Inicializace náhledu
+window.after(0, update_frame, frame_queue)
 
 
 # Bind klávesy "Q" pro zavření okna

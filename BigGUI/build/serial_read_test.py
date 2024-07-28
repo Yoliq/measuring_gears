@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import StringVar
 import serial
 import threading
+from time import sleep
 
 # Nahraďte '/dev/ttyUSB0' skutečným sériovým portem
 SERIAL_PORT = '/dev/ttyUSB0'
@@ -10,10 +11,20 @@ BAUD_RATE = 115200
 # Globální proměnná pro offset
 offset = 0.0
 
+def init_serial_connection():
+    for _ in range(5):  # Opakovat 5 pokusů
+        try:
+            ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
+            return ser
+        except serial.SerialException:
+            sleep(2)  # Počkat 2 sekundy před dalším pokusem
+    raise Exception("Nelze navázat spojení se sériovým portem")
+
 def read_serial():
     global offset
-    with serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1) as ser:
-        while True:
+    ser = init_serial_connection()
+    while True:
+        try:
             line = ser.readline().decode('utf-8').strip()
             if line:
                 try:
@@ -23,6 +34,8 @@ def read_serial():
                     angle_var.set(formatted_angle)
                 except ValueError:
                     pass  # Pokud nelze převést na float, ignorujeme chybu
+        except UnicodeDecodeError:
+            pass  # Ignorovat chyby dekódování a pokračovat
 
 def zero_angle():
     global offset
