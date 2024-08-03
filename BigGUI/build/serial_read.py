@@ -11,7 +11,7 @@ class SerialReader:
         self.angle = 0.0
         self.reading = False
 
-    def connect(self):
+    def _connect(self):
         try:
             self.ser = serial.Serial(self.port, self.baud_rate, timeout=1)
             self.reading = True
@@ -19,7 +19,7 @@ class SerialReader:
         except serial.SerialException as e:
             print(f"Error connecting to serial port: {e}")
 
-    def disconnect(self):
+    def _disconnect(self):
         if self.ser and self.ser.is_open:
             self.ser.close()
             self.reading = False
@@ -35,14 +35,14 @@ class SerialReader:
                 print(f"Error reading serial data: {e}")
 
     def start_reading(self):
-        self.connect()
+        self._connect()
         read_thread = threading.Thread(target=self.read_serial)
         read_thread.daemon = True
         read_thread.start()
 
     def stop_reading(self):
         self.reading = False
-        self.disconnect()
+        self._disconnect()
 
     def zero_angle(self, current_angle):
         self.offset += current_angle

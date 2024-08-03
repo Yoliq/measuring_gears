@@ -12,34 +12,90 @@ import time
 from serial_read import SerialReader
 from multiprocessing import Process, Queue
 
-OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / "assets" / "frame0"
+from constants import *
+from Endstop import Endstop
 
-# Inicializace SerialReader
-serial_reader = SerialReader('/dev/ttyUSB0', 115200)
-serial_reader.start_reading()
+'''
+START SERIAL READERS
+    * used to connect real time MCUs to Raspberry Pi
+    * MCUs sends IRC information over USB
+'''
+
+# Hnaci kolo
+
+serial_reader_hnaci_kolo = SerialReader(USB_IRC_HNACI_KOLO, SERIAL_BAUDRATE)
+# Pripojeni a odpojeni Serialu (bypass chyby, kdy se serial otevre az na druhy pokus)
+serial_reader_hnaci_kolo.start_reading()
+time.sleep(1)
+serial_reader_hnaci_kolo.stop_reading()
+time.sleep(1)
+# Zahajeni komunikace naostro
+serial_reader_hnaci_kolo.start_reading()
+
+
+# Hnane kolo
+# TODO
+
+'''
+CREATE MOTORS
+'''
+
+big_motor = Stepper_motor(STEP_PIN_BIG_MOTOR,
+                          DIR_PIN_BIG_MOTOR,
+                          ENABLE_PIN_BIG_MOTOR,
+                          SPEED_BIG_MOTOR,
+                          STEPS_BIG_MOTOR,
+                          PREVODOVY_POMER_BIG_MOTOR,
+                          SEKVENCE_VELIKOST_NATOCENI,
+                          ENDSTOP_VELIKOST_CUKNUTI)
+
+small_motor = Stepper_motor(STEP_PIN_SMALL_MOTOR,
+                          DIR_PIN_SMALL_MOTOR,
+                          ENABLE_PIN_SMALL_MOTOR,
+                          SPEED_SMALL_MOTOR,
+                          STEPS_SMALL_MOTOR,
+                          PREVODOVY_POMER_SMALL_MOTOR,
+                          SEKVENCE_VELIKOST_NATOCENI,
+                          ENDSTOP_VELIKOST_CUKNUTI)
+
+
+'''
+CREATE ENDSTOPS
+'''
+
+endstop_paka = Endstop(ENDSTOP_PIN, big_motor)
+
+# Vytvoreni vlakna endstopu, ktere kontroluje motor.
+# endstop_thread = Thread(target=endstop_paka.loop)
+# endstop_thread.start()
 
 
 
-STEPS_big_motor = 400
-STEPS_small_motor = 400
 
-#myMotor = Stepper_motor(STEP/PUL, DIR, ENABLE, Delay, STEPS)
-big_motor = Stepper_motor(17, 27, 22, 0.001, STEPS_big_motor, 12)
-small_motor = Stepper_motor(16, 20, 21, 0.001, STEPS_small_motor, 23)
-
-#uhel_sekvence=90
-#steps_to_rotate=STEPS_big_motor/360*uhel_sekvence
-
+'''
+Takes path as string.
+Returns path object which points to location specified by ASSETS_PATH/path
+'''
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
+
+''' 
+Used for checking hmotnost entry and osova vzdalenost entry.
+Must be either:
+    * numeric value
+    * empty string so it is possible to leave the text box
+'''
 def validate_numeric_input(new_value):
     if new_value == "" or new_value.replace('.', '', 1).isdigit() or new_value.replace(',', '', 1).isdigit():
         return True
     return False
 
-##################    Začátek GUI      ######################
+
+
+'''
+GUI START
+'''
 window = Tk()
 window.geometry("2560x1440")
 window.configure(bg="#FFFFFF")
@@ -56,34 +112,38 @@ def end_fullscreen(event=None):
     window.attributes("-fullscreen", False)
     return "break"
 
+
+
 # Proměnná pro uchování hodnoty natočení páky
 natoceni_paky = StringVar()
 natoceni_paky.set("Čekám")  # Původní hodnota
 
 # Aktualizace hodnoty natočení páky
 def update_angle():
-    natoceni_paky.set(serial_reader.get_formatted_angle())
+    natoceni_paky.set(serial_reader_hnaci_kolo.get_formatted_angle())
     window.after(100, update_angle)  # Aktualizace každých 100 ms
 
+# Vynulovani paky
 def zero_angle():
-    try:
-        current_angle = float(natoceni_paky.get())
-        serial_reader.zero_angle(current_angle)
-    except ValueError:
-        pass  # Pokud není možné získat aktuální úhel, ignorujeme chybu
+    current_angle = float(natoceni_paky.get())
+    serial_reader_hnaci_kolo.zero_angle(current_angle)
 
 # Zahájení aktualizace hodnoty natočení páky
 update_angle()
 
 def start_motor_sequence(motor, direction):
     if direction == "up":
-        motor.sekvence_up(None)
+        motor.sekvence_up(SEKVENCE_VELIKOST_NATOCENI)
     else:
-        motor.sekvence_down()
+        motor.sekvence_down(SEKVENCE_VELIKOST_NATOCENI)
 
 def home(event):
     print("Home button pressed")
     Thread(target=big_motor.start_motor, args=(GPIO.LOW,)).start()
+
+'''
+Camera code
+'''
 
 def update_frame(queue):
     if not queue.empty():
@@ -110,6 +170,9 @@ def on_closing():
 # Inicializace kamery a spuštění náhledu při spuštění programu
 cam = camera.Camera()
 
+'''
+SHORTCUTS DEFINITION
+'''
 window.protocol("WM_DELETE_WINDOW", on_closing)
 window.bind("<F11>", toggle_fullscreen)
 window.bind("<Escape>", end_fullscreen)
@@ -157,10 +220,7 @@ image_4 = canvas.create_image(373.0, 416.0, image=image_image_4)
 image_image_5 = PhotoImage(file=relative_to_assets("image_5.png"))
 image_5 = canvas.create_image(181.0, 462.0, image=image_image_5)
 
-# Nové funkce pro zpracování tlačítek
-#def on_button_click(event, button_name):
-#    print(f"{button_name} clicked")
-
+# TODO jsou tu potreba ty eventy?
 def on_button_press(event, button_canvas, pressed_photo, button_name):
     canvas.itemconfig(button_canvas, image=pressed_photo)
     canvas.move(button_canvas, 4, 4)
@@ -232,7 +292,7 @@ button_image_5 = Image.open(button_image_5_path).convert("RGBA")
 button_5_photo = ImageTk.PhotoImage(button_image_5)
 button_5_pressed = Image.open(button_image_5_pressed_path).convert("RGBA")
 button_5_pressed_photo = ImageTk.PhotoImage(button_5_pressed)
-button_5_canvas = canvas.create_image(959, 169, image=button_5_photo, anchor="nw")
+button_5_canvas = canvas.create_image(945, 169, image=button_5_photo, anchor="nw")
 
 canvas.tag_bind(button_5_canvas, "<Button-1>", lambda event: (on_button_press(event, button_5_canvas, button_5_pressed_photo, "Home"), home(event)))
 canvas.tag_bind(button_5_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_5_canvas, button_5_photo, "Home"))
@@ -244,7 +304,7 @@ button_image_6 = Image.open(button_image_6_path).convert("RGBA")
 button_6_photo = ImageTk.PhotoImage(button_image_6)
 button_6_pressed = Image.open(button_image_6_pressed_path).convert("RGBA")
 button_6_pressed_photo = ImageTk.PhotoImage(button_6_pressed)
-button_6_canvas = canvas.create_image(1208, 166, image=button_6_photo, anchor="nw")
+button_6_canvas = canvas.create_image(1220, 166, image=button_6_photo, anchor="nw")
 
 canvas.tag_bind(button_6_canvas, "<Button-1>", lambda event: (on_button_press(event, button_6_canvas, button_6_pressed_photo, "Button 6"), zero_angle()))
 canvas.tag_bind(button_6_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_6_canvas, button_6_photo, "Button 6"))
@@ -360,7 +420,7 @@ image_image_22 = PhotoImage(file=relative_to_assets("image_22.png"))
 image_22 = canvas.create_image(940.999986493181, 475.0, image=image_image_22)
 
 #Natočení páky 1
-angle_label = tk.Label(window, textvariable=natoceni_paky, justify='right', bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
+angle_label = tk.Label(window, textvariable=natoceni_paky, justify='center', bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
 angle_label.place(x=1256, y=300)
 
 
@@ -490,6 +550,9 @@ canvas.create_text(
 def close_window(event=None):
     on_closing()  # Zavolat funkci on_closing pro správné ukončení
 
+'''
+Camera shitstorm
+'''
 
 def update_frame(queue):
     if not queue.empty():
