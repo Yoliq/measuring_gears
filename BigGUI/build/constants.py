@@ -41,4 +41,12 @@ ENDSTOP_OFFSET = 25.18 # degree
 LANKOVY_SNIMAC_KOREKCE = 0
 
 # Laserovy snimac vzdalenosti
+'''
+Info z Arduina o snímači: 
+Adafruit VL53L1X sensor demo
+VL53L1X sensor OK!
+Sensor ID: 0xEACC
+Ranging started
+Timing budget (ms): 50
+'''
 LASEROVY_SNIMAC_KOREKCE = 0

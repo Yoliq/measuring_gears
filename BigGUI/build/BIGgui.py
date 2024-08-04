@@ -32,9 +32,14 @@ time.sleep(1)
 # Zahajeni komunikace naostro
 serial_reader_hnaci_kolo.start_reading()
 
-
 # Hnane kolo
 # TODO
+serial_reader_hnane_kolo = SerialReader(USB_IRC_HNANE_KOLO, SERIAL_BAUDRATE)
+serial_reader_hnane_kolo.start_reading()
+time.sleep(1)
+serial_reader_hnane_kolo.stop_reading()
+time.sleep(1)
+serial_reader_hnane_kolo.start_reading()
 
 '''
 CREATE MOTORS
@@ -70,15 +75,12 @@ endstop_paka = Endstop(ENDSTOP_PIN, big_motor)
 # endstop_thread.start()
 
 
-
-
 '''
 Takes path as string.
 Returns path object which points to location specified by ASSETS_PATH/path
 '''
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
-
 
 ''' 
 Used for checking hmotnost entry and osova vzdalenost entry.
@@ -90,8 +92,6 @@ def validate_numeric_input(new_value):
     if new_value == "" or new_value.replace('.', '', 1).isdigit() or new_value.replace(',', '', 1).isdigit():
         return True
     return False
-
-
 
 '''
 GUI START
@@ -112,22 +112,27 @@ def end_fullscreen(event=None):
     window.attributes("-fullscreen", False)
     return "break"
 
-
-
 # Proměnná pro uchování hodnoty natočení páky
 natoceni_paky = StringVar()
 natoceni_paky.set("Čekám")  # Původní hodnota
 
+# Proměnná pro uchování hodnoty natočení kola
+natoceni_kola = StringVar()
+natoceni_kola.set("Čekám")  # Původní hodnota
+
 # Aktualizace hodnoty natočení páky
 def update_angle():
     natoceni_paky.set(serial_reader_hnaci_kolo.get_formatted_angle())
+    natoceni_kola.set(serial_reader_hnane_kolo.get_formatted_angle())
     window.after(100, update_angle)  # Aktualizace každých 100 ms
 
 # Vynulovani paky
 def zero_angle():
-    current_angle = float(natoceni_paky.get())
-    serial_reader_hnaci_kolo.zero_angle(current_angle)
-
+    current_angle_paka = float(natoceni_paky.get())
+    serial_reader_hnaci_kolo.zero_angle(current_angle_paka)
+    current_angle_kolo = float(natoceni_kola.get())
+    serial_reader_hnane_kolo.zero_angle(current_angle_kolo)
+    
 # Zahájení aktualizace hodnoty natočení páky
 update_angle()
 
@@ -420,8 +425,8 @@ image_image_22 = PhotoImage(file=relative_to_assets("image_22.png"))
 image_22 = canvas.create_image(940.999986493181, 475.0, image=image_image_22)
 
 #Natočení páky 1
-angle_label = tk.Label(window, textvariable=natoceni_paky, justify='center', bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
-angle_label.place(x=1256, y=300)
+angle_label_paka = tk.Label(window, textvariable=natoceni_paky, justify='center', bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
+angle_label_paka.place(x=1256, y=300)
 
 
 #Natočení páky 2
@@ -434,14 +439,17 @@ canvas.create_text(
     font=("Arial", 40 * -1, "bold")
 )
 #Natočení kola
-canvas.create_text(
-    1135-11,
-    1230,
-    anchor="nw",
-    text="360,46",
-    fill="#000000",
-    font=("Arial", 40 * -1, "bold")
-)
+angle_label_kolo = tk.Label(window, textvariable=natoceni_kola, justify='center', bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
+angle_label_kolo.place(x=1135-11, y=1230)
+
+# canvas.create_text(
+#     1135-11,
+#     1230,
+#     anchor="nw",
+#     text="360,46",
+#     fill="#000000",
+#     font=("Arial", 40 * -1, "bold")
+# )
 
 # Funkce pro validaci názvu souboru
 def validate_nazev(nazev_value):    
