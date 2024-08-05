@@ -70,10 +70,6 @@ CREATE ENDSTOPS
 
 endstop_paka = Endstop(ENDSTOP_PIN, big_motor)
 
-# Vytvoreni vlakna endstopu, ktere kontroluje motor.
-# endstop_thread = Thread(target=endstop_paka.loop)
-# endstop_thread.start()
-
 
 '''
 Takes path as string.

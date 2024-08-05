@@ -11,6 +11,7 @@ class Endstop:
 
     def _GPIO_setup(self):
         GPIO.setup(self.pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.add_event_detect(self.pin, self.pressed_state, callback=self.pressed_action, bouncetime=300)
 
     
     def pressed_action(self):
@@ -29,18 +30,3 @@ class Endstop:
             time.sleep(self.motor_to_stop.speed)
         self.motor_to_stop.motor_running = False
             # TODO vynulovat hodnoty pro natoceni paky
-
-
-    def _is_pressed(self):
-        if GPIO.input(self.pin) == self.pressed_state:  # Koncový spínač je stisknutý
-            return True
-        return False
-    
-    def loop(self):
-        while True:
-            if self._is_pressed(): # endstop zmacknut
-                print("Endstop zmacknut")
-                self.pressed_action() # proved pressed_action
-                time.sleep(0.1)
-
-
