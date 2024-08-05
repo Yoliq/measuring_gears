@@ -8,12 +8,19 @@ class Endstop:
                 pin,
                 motor_to_stop,
                 endstop_pressed_set_angle,
+                serial_reader_hnaci_kolo,
+                serial_reader_hnane_kolo,
+                natoceni_paky,
+                natoceni_kola,
                 pressed_state=GPIO.LOW):
+
         self.pin = pin
         self.motor_to_stop = motor_to_stop
         self.pressed_state = pressed_state
-        #self.serial_reader_hnaci_kolo = serial_reader_hnaci_kolo
-        #self.serial_reader_hnane_kolo = serial_reader_hnane_kolo
+        self.serial_reader_hnaci_kolo = serial_reader_hnaci_kolo
+        self.serial_reader_hnane_kolo = serial_reader_hnane_kolo
+        self.natoceni_paky = natoceni_paky
+        self.natoceni_kola = natoceni_kola
         self.endstop_pressed_set_angle = endstop_pressed_set_angle
         self._GPIO_setup()
 
@@ -32,7 +39,7 @@ class Endstop:
         self.motor_to_stop.sekvence_up(self.motor_to_stop.endstop_velikost_cuknuti)
 
         # vynuluj pole a nastav je na hodnotu self.endstop_pressed_set_angle
-        current_angle_paka = float(natoceni_paky.get())
-        serial_reader_hnaci_kolo.zero_angle(current_angle_paka - self.endstop_pressed_set_angle)
-        current_angle_kolo = float(natoceni_kola.get())
-        serial_reader_hnane_kolo.zero_angle(current_angle_kolo - self.endstop_pressed_set_angle)
+        current_angle_paka = float(self.natoceni_paky.get())
+        self.serial_reader_hnaci_kolo.zero_angle(current_angle_paka + self.endstop_pressed_set_angle)
+        current_angle_kolo = float(self.natoceni_kola.get())
+        self.serial_reader_hnane_kolo.zero_angle(current_angle_kolo + self.endstop_pressed_set_angle)

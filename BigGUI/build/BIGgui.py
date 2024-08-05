@@ -65,13 +65,6 @@ small_motor = Stepper_motor(STEP_PIN_SMALL_MOTOR,
 
 
 '''
-CREATE ENDSTOPS
-'''
-
-endstop_paka = Endstop(ENDSTOP_PIN, big_motor, ENDSTOP_OFFSET)
-
-
-'''
 Takes path as string.
 Returns path object which points to location specified by ASSETS_PATH/path
 '''
@@ -128,7 +121,19 @@ def zero_angle():
     serial_reader_hnaci_kolo.zero_angle(current_angle_paka)
     current_angle_kolo = float(natoceni_kola.get())
     serial_reader_hnane_kolo.zero_angle(current_angle_kolo)
-    
+
+'''
+CREATE ENDSTOPS
+'''
+
+endstop_paka = Endstop(ENDSTOP_PIN,
+                        big_motor,
+                        ENDSTOP_OFFSET,
+                        serial_reader_hnaci_kolo,
+                        serial_reader_hnane_kolo,
+                        natoceni_paky,
+                        natoceni_kola)
+
 # Zahájení aktualizace hodnoty natočení páky
 update_angle()
 
