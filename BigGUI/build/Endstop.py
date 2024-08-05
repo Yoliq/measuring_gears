@@ -12,6 +12,7 @@ class Endstop:
                 serial_reader_hnane_kolo,
                 natoceni_paky,
                 natoceni_kola,
+                natoceni_paky_hlavni,
                 pressed_state=GPIO.LOW):
 
         self.pin = pin
@@ -21,6 +22,7 @@ class Endstop:
         self.serial_reader_hnane_kolo = serial_reader_hnane_kolo
         self.natoceni_paky = natoceni_paky
         self.natoceni_kola = natoceni_kola
+        self.natoceni_paky_hlavni = natoceni_paky_hlavni
         self.endstop_pressed_set_angle = endstop_pressed_set_angle
         self._GPIO_setup()
 
@@ -43,3 +45,9 @@ class Endstop:
         self.serial_reader_hnaci_kolo.zero_angle(current_angle_paka + self.endstop_pressed_set_angle)
         current_angle_kolo = float(self.natoceni_kola.get())
         self.serial_reader_hnane_kolo.zero_angle(current_angle_kolo + self.endstop_pressed_set_angle)
+        
+        # nastavení hodnoty hlavního natočení páky
+        self.natoceni_paky_hlavni.set(self.endstop_pressed_set_angle)        
+        #current_angle_paka_hlavni =  current_angle_paka #float(self.natoceni_paky.get())
+        #self.serial_reader_hnaci_kolo.zero_angle(current_angle_paka_hlavni + self.endstop_pressed_set_angle)
+        

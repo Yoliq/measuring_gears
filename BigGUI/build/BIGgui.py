@@ -32,8 +32,7 @@ time.sleep(1)
 # Zahajeni komunikace naostro
 serial_reader_hnaci_kolo.start_reading()
 
-# Hnane kolo
-# TODO
+# Hnane kolos
 serial_reader_hnane_kolo = SerialReader(USB_IRC_HNANE_KOLO, SERIAL_BAUDRATE)
 serial_reader_hnane_kolo.start_reading()
 time.sleep(1)
@@ -109,10 +108,15 @@ natoceni_paky.set("Čekám")  # Původní hodnota
 natoceni_kola = StringVar()
 natoceni_kola.set("Čekám")  # Původní hodnota
 
+# Proměnná pro uchování hodnoty natočení páky hlavní
+natoceni_paky_hlavni = StringVar()
+natoceni_paky_hlavni.set("Čekám")  # Původní hodnota
+
 # Aktualizace hodnoty natočení páky
 def update_angle():
     natoceni_paky.set(serial_reader_hnaci_kolo.get_formatted_angle())
     natoceni_kola.set(serial_reader_hnane_kolo.get_formatted_angle())
+    natoceni_paky_hlavni.set(natoceni_paky.get())
     window.after(100, update_angle)  # Aktualizace každých 100 ms
 
 # Vynulovani paky
@@ -125,14 +129,14 @@ def zero_angle():
 '''
 CREATE ENDSTOPS
 '''
-
 endstop_paka = Endstop(ENDSTOP_PIN,
                         big_motor,
                         ENDSTOP_OFFSET,
                         serial_reader_hnaci_kolo,
                         serial_reader_hnane_kolo,
                         natoceni_paky,
-                        natoceni_kola)
+                        natoceni_kola,
+                        natoceni_paky_hlavni)
 
 # Zahájení aktualizace hodnoty natočení páky
 update_angle()
@@ -431,14 +435,17 @@ angle_label_paka.place(x=1256, y=300)
 
 
 #Natočení páky 2
-canvas.create_text(
-    1267-11,
-    386,
-    anchor="nw",
-    text="318,46",
-    fill="#000000",
-    font=("Arial", 40 * -1, "bold")
-)
+angle_label_paka_hlavni = tk.Label(window, textvariable= natoceni_paky_hlavni, justify='center', bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
+angle_label_paka.place(x=1267-11, y=386)
+# canvas.create_text(
+#     1267-11,
+#     386,
+#     anchor="nw",
+#     text="318,46",
+#     fill="#000000",
+#     font=("Arial", 40 * -1, "bold")
+# )
+
 #Natočení kola
 angle_label_kolo = tk.Label(window, textvariable=natoceni_kola, justify='center', bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
 angle_label_kolo.place(x=1135-11, y=1230)
