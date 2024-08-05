@@ -68,7 +68,7 @@ small_motor = Stepper_motor(STEP_PIN_SMALL_MOTOR,
 CREATE ENDSTOPS
 '''
 
-endstop_paka = Endstop(ENDSTOP_PIN, big_motor)
+endstop_paka = Endstop(ENDSTOP_PIN, big_motor, ENDSTOP_OFFSET)
 
 
 '''
