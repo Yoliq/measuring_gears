@@ -46,8 +46,7 @@ class Endstop:
         current_angle_kolo = float(self.natoceni_kola.get())
         self.serial_reader_hnane_kolo.zero_angle(current_angle_kolo + self.endstop_pressed_set_angle)
         
-        # nastavení hodnoty hlavního natočení páky
-        self.natoceni_paky_hlavni.set(self.endstop_pressed_set_angle)        
-        #current_angle_paka_hlavni =  current_angle_paka #float(self.natoceni_paky.get())
-        #self.serial_reader_hnaci_kolo.zero_angle(current_angle_paka_hlavni + self.endstop_pressed_set_angle)
+        # nastavení hodnoty hlavního natočení páky   
+        current_angle_paka_hlavni =  float(self.natoceni_paky_hlavni.get())
+        self.serial_reader_hnaci_kolo.zero_angle(current_angle_paka_hlavni + self.endstop_pressed_set_angle)
         

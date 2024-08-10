@@ -114,10 +114,19 @@ natoceni_paky_hlavni.set("Čekám")  # Původní hodnota
 
 # Aktualizace hodnoty natočení páky
 def update_angle():
-    natoceni_paky.set(serial_reader_hnaci_kolo.get_formatted_angle())
-    natoceni_kola.set(serial_reader_hnane_kolo.get_formatted_angle())
-    natoceni_paky_hlavni.set(natoceni_paky.get())
-    window.after(100, update_angle)  # Aktualizace každých 100 ms
+    # vycteni hodnot z tridy serial_reader
+    natoceni_paky_value = serial_reader_hnaci_kolo.get_formatted_angle()
+    natoceni_kola_value = serial_reader_hnane_kolo.get_formatted_angle()
+
+    # update hodnot natoceni_paky a natoceni_paky_hlavni
+    natoceni_paky.set(natoceni_paky_value)
+    natoceni_paky_hlavni.set(natoceni_paky_value)
+
+    # update hodnot natoceni_kola
+    natoceni_kola.set(natoceni_kola_value)
+    
+    # Aktualizace každých 100 ms
+    window.after(100, update_angle)
 
 # Vynulovani paky
 def zero_angle():
