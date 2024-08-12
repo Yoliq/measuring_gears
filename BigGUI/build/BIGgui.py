@@ -280,10 +280,10 @@ button_3_pressed = Image.open(button_image_3_pressed_path).convert("RGBA")
 button_3_pressed_photo = ImageTk.PhotoImage(button_3_pressed)
 button_3_canvas = canvas.create_image(1417, 880, image=button_3_photo, anchor="nw")
 
-canvas.tag_bind(button_3_canvas, "<Button-1>", lambda event: (on_button_press(event, button_3_canvas, button_3_pressed_photo, "Button 3"), small_motor.on_button_press_forward(event)))
-canvas.tag_bind(button_3_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_3_canvas, button_3_photo, "Button 3"), small_motor.on_button_release_forward(event)))
+canvas.tag_bind(button_3_canvas, "<Button-1>", lambda event: (on_button_press(event, button_3_canvas, button_3_pressed_photo, "Button 3"), small_motor.on_button_press_backward(event)))
+canvas.tag_bind(button_3_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_3_canvas, button_3_photo, "Button 3"), small_motor.on_button_release_backward(event)))
 
-# Tlacitko 4 OS+
+# Tlacitko 4 OS-
 button_image_4_path = relative_to_assets("button_4.png")
 button_image_4_pressed_path = relative_to_assets("button_4_pressed.png")
 button_image_4 = Image.open(button_image_4_path).convert("RGBA")
@@ -292,8 +292,8 @@ button_4_pressed = Image.open(button_image_4_pressed_path).convert("RGBA")
 button_4_pressed_photo = ImageTk.PhotoImage(button_4_pressed)
 button_4_canvas = canvas.create_image(1624, 880, image=button_4_photo, anchor="nw")
 
-canvas.tag_bind(button_4_canvas, "<Button-1>", lambda event: (on_button_press(event, button_4_canvas, button_4_pressed_photo, "Button 4"), small_motor.on_button_press_backward(event)))
-canvas.tag_bind(button_4_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_4_canvas, button_4_photo, "Button 4"), small_motor.on_button_release_backward(event)))
+canvas.tag_bind(button_4_canvas, "<Button-1>", lambda event: (on_button_press(event, button_4_canvas, button_4_pressed_photo, "Button 4"), small_motor.on_button_press_forward(event)))
+canvas.tag_bind(button_4_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_4_canvas, button_4_photo, "Button 4"), small_motor.on_button_release_forward(event)))
 
 # Tlacitko 5 HOME
 button_image_5_path = relative_to_assets("button_5.png")
