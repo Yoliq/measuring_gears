@@ -4,7 +4,7 @@ from threading import Thread
 from tkinter import Tk, Button, Canvas, PhotoImage
 from pathlib import Path
 GPIO.setwarnings(False)
-
+from datetime import datetime
 
 
 class Stepper_motor:
@@ -43,6 +43,7 @@ class Stepper_motor:
         GPIO.output(self.enable_pin, GPIO.LOW)  # Enable driver
 
         steps_taken = 0
+        old_now = datetime.now()
         while self.motor_running and (steps is None or steps_taken<steps):
             # ENDSTOP PRESSED PART
             # if GPIO.input(self.end_stop_pin) == GPIO.LOW:  # Koncový spínač je stisknutý
@@ -60,11 +61,16 @@ class Stepper_motor:
             #     # TODO vynulovat hodnoty pro natoceni paky
             #     break
             
+            now = datetime.now()
+            print(f"While loop {now-old_now}")
             GPIO.output(self.step_pin, GPIO.HIGH)
             time.sleep(self.speed)
+            print(f"GPIO LOW {datetime.now()-now}")
             GPIO.output(self.step_pin, GPIO.LOW)
             time.sleep(self.speed)
             steps_taken +=1
+            print(f"Steps_taken:{steps_taken}")
+            old_now = now
 
         GPIO.output(self.enable_pin, GPIO.HIGH)  # Disable driver when stopping
 

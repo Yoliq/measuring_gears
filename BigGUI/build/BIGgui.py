@@ -10,6 +10,7 @@ import camera
 import cv2
 import time
 from serial_read import SerialReader
+from serial_length import DualSerialReader
 from multiprocessing import Process, Queue
 
 from constants import *
@@ -22,7 +23,6 @@ START SERIAL READERS
 '''
 
 # Hnaci kolo
-
 serial_reader_hnaci_kolo = SerialReader(USB_IRC_HNACI_KOLO, SERIAL_BAUDRATE)
 # Pripojeni a odpojeni Serialu (bypass chyby, kdy se serial otevre az na druhy pokus)
 serial_reader_hnaci_kolo.start_reading()
@@ -39,6 +39,10 @@ time.sleep(1)
 serial_reader_hnane_kolo.stop_reading()
 time.sleep(1)
 serial_reader_hnane_kolo.start_reading()
+
+#Osove vzdalenosti
+serial_reader_osove_vz = DualSerialReader(USB_ARDUINO_LENGTH, SERIAL_BAUDRATE_ARD)
+serial_reader_osove_vz.start_reading()
 
 '''
 CREATE MOTORS
@@ -112,11 +116,19 @@ natoceni_kola.set("Čekám")  # Původní hodnota
 natoceni_paky_hlavni = StringVar()
 natoceni_paky_hlavni.set("Čekám")  # Původní hodnota
 
+# Proměnné pro osové vzdálenosti
+lanko = StringVar()
+lanko.set("Čekám")
+laser = StringVar()
+laser.set("Čekám")
+
 # Aktualizace hodnoty natočení páky
 def update_angle():
     natoceni_paky.set(serial_reader_hnaci_kolo.get_formatted_angle())
     natoceni_kola.set(serial_reader_hnane_kolo.get_formatted_angle())
     natoceni_paky_hlavni.set(natoceni_paky.get())
+    lanko.set(serial_reader_osove_vz.get_formatted_lanko_value())
+    laser.set(serial_reader_osove_vz.get_formatted_laser_value())
     window.after(100, update_angle)  # Aktualizace každých 100 ms
 
 # Vynulovani paky
@@ -546,23 +558,30 @@ entry_os_vzdalenost.bind("<Return>", get_os_vzdalenost_value)
 entry_os_vzdalenost.bind("<KP_Enter>", get_os_vzdalenost_value)
 
 #Lankový snímač
-canvas.create_text(
-    1475,
-    1184,
-    anchor="nw",
-    text="160,5",
-    fill="#000000",
-    font=("Arial", 32 * -1, "bold")
-)
+lanko_label = tk.Label(window, textvariable=lanko, justify="center", bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
+lanko_label.place(x=1475, y=1184)
+# canvas.create_text(
+#     1475,
+#     1184,
+#     anchor="nw",
+#     text="160,5",
+#     fill="#000000",
+#     font=("Arial", 32 * -1, "bold")
+# )
+
 #Laserový snímač
-canvas.create_text(
-    1475,
-    1301,
-    anchor="nw",
-    text="175,5",
-    fill="#000000",
-    font=("Arial", 32 * -1, "bold")
-)
+laser_label = tk.Label(window, textvariable=laser, justify="center", bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
+laser_label.place(x=1475, y=1301)
+
+# canvas.create_text(
+#     1475,
+#     1301,
+#     anchor="nw",
+#     text="175,5",
+#     fill="#000000",
+#     font=("Arial", 32 * -1, "bold")
+# )
+
 def close_window(event=None):
     on_closing()  # Zavolat funkci on_closing pro správné ukončení
 

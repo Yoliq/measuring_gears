@@ -5,16 +5,12 @@ import threading
 from time import sleep
 
 # Nahraďte '/dev/ttyUSB0' skutečným sériovým portem
-SERIAL_PORT = '/dev/ttyUSB0'
+SERIAL_PORT = '/dev/ttyACM0'
 BAUD_RATE = 115200
-
-# Globální proměnná pro offset
-offset = 0.0
 
 def init_serial_connection():
     for _ in range(5):  # Opakovat 5 pokusů
         try:
-            
             ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
             ser.flushInput()
             sleep(1)
@@ -29,47 +25,44 @@ def init_serial_connection():
     raise Exception("Nelze navázat spojení se sériovým portem")
 
 def read_serial():
-    global offset
     ser = init_serial_connection()
     while True:
         try:
             line = ser.readline().decode('utf-8').strip()
             if line:
                 try:
-                    angle = float(line)
-                    adjusted_angle = angle - offset
-                    formatted_angle = f"{adjusted_angle:.2f}"
-                    angle_var.set(formatted_angle)
+                    # Rozdělit příchozí řetězec na dvě části
+                    lanko_value, laser_value = map(float, line.split(','))
+                    
+                    # Nastavení hodnot pro zobrazení
+                    lanko_var.set(f"{lanko_value:.1f}")
+                    laser_var.set(f"{laser_value:.0f}")
                 except ValueError:
                     pass  # Pokud nelze převést na float, ignorujeme chybu
         except UnicodeDecodeError:
             pass  # Ignorovat chyby dekódování a pokračovat
 
-def zero_angle():
-    global offset
-    try:
-        current_angle = float(angle_var.get())
-        offset += current_angle  # Adjust offset by the current angle
-    except ValueError:
-        pass  # Pokud není možné získat aktuální úhel, ignorujeme chybu
-
 # Vytvoření Tkinter okna
 window = tk.Tk()
-window.title("Zobrazení úhlu IRC")
+window.title("Zobrazení hodnot IRC")
 window.geometry("400x200")
 
-angle_var = StringVar()
-angle_var.set("Čekám na data...")
+# Proměnné pro zobrazení
+lanko_var = StringVar()
+laser_var = StringVar()
+lanko_var.set("Čekám na data...")
+laser_var.set("Čekám na data...")
 
-label = tk.Label(window, text="Aktuální úhel (stupně):", font=("Arial", 16))
-label.pack(pady=20)
+# Popisky a štítky pro zobrazení hodnot
+label_lanko = tk.Label(window, text="Hodnota lanka (stupně):", font=("Arial", 16))
+label_lanko.pack(pady=10)
+lanko_label = tk.Label(window, textvariable=lanko_var, font=("Arial", 24))
+lanko_label.pack(pady=10)
 
-angle_label = tk.Label(window, textvariable=angle_var, font=("Arial", 24))
-angle_label.pack(pady=20)
-
-# Tlačítko pro nulování
-zero_button = tk.Button(window, text="Nulovat", command=zero_angle, font=("Arial", 16))
-zero_button.pack(pady=10)
+label_laser = tk.Label(window, text="Hodnota laseru (stupně):", font=("Arial", 16))
+label_laser.pack(pady=10)
+laser_label = tk.Label(window, textvariable=laser_var, font=("Arial", 24))
+laser_label.pack(pady=10)
 
 # Zahájení čtení sériových dat
 serial_thread = threading.Thread(target=read_serial)
