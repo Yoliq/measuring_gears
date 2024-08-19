@@ -167,35 +167,35 @@ def home(event):
 Camera code
 '''
 
-def update_frame(queue):
-    if not queue.empty():
-        frame = queue.get()
-        if frame is not None:
-            frame = cv2.resize(frame, (704, 461))
-            photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
-            canvas.create_image(cmx, cmy, image=photo, anchor=tk.NW)
-            window.photo = photo
-    window.after(33, update_frame, queue)  # Cca 30 fps
+# def update_frame(queue):
+#     if not queue.empty():
+#         frame = queue.get()
+#         if frame is not None:
+#             frame = cv2.resize(frame, (704, 461))
+#             photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
+#             canvas.create_image(cmx, cmy, image=photo, anchor=tk.NW)
+#             window.photo = photo
+#     window.after(33, update_frame, queue)  # Cca 30 fps
 
-def start_recording():
-    recording_queue.put(True)
+# def start_recording():
+#     recording_queue.put(True)
 
-def stop_recording():
-    recording_queue.put(False)
+# def stop_recording():
+#     recording_queue.put(False)
 
 def on_closing():
-    recording_queue.put(False)  # Zastavit nahrávání, pokud běží
-    process.terminate()  # Ukončit proces kamery
-    process.join()  # Počkat na ukončení procesu
+    # recording_queue.put(False)  # Zastavit nahrávání, pokud běží
+    # process.terminate()  # Ukončit proces kamery
+    # process.join()  # Počkat na ukončení procesu
     window.destroy()
 
-# Inicializace kamery a spuštění náhledu při spuštění programu
-cam = camera.Camera()
+# # Inicializace kamery a spuštění náhledu při spuštění programu
+# cam = camera.Camera()
 
 '''
 SHORTCUTS DEFINITION
 '''
-window.protocol("WM_DELETE_WINDOW", on_closing)
+#window.protocol("WM_DELETE_WINDOW", on_closing)
 window.bind("<F11>", toggle_fullscreen)
 window.bind("<Escape>", end_fullscreen)
 window.bind("<Button-3>", end_fullscreen)  # Bind right mouse button
@@ -326,7 +326,7 @@ button_image_6 = Image.open(button_image_6_path).convert("RGBA")
 button_6_photo = ImageTk.PhotoImage(button_image_6)
 button_6_pressed = Image.open(button_image_6_pressed_path).convert("RGBA")
 button_6_pressed_photo = ImageTk.PhotoImage(button_6_pressed)
-button_6_canvas = canvas.create_image(1220, 166, image=button_6_photo, anchor="nw")
+button_6_canvas = canvas.create_image(1220+40, 166, image=button_6_photo, anchor="nw")
 
 canvas.tag_bind(button_6_canvas, "<Button-1>", lambda event: (on_button_press(event, button_6_canvas, button_6_pressed_photo, "Button 6"), zero_angle()))
 canvas.tag_bind(button_6_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_6_canvas, button_6_photo, "Button 6"))
@@ -406,7 +406,7 @@ image_image_10 = PhotoImage(file=relative_to_assets("image_10.png"))
 image_10 = canvas.create_image(957, 315, image=image_image_10)
 
 image_image_8 = PhotoImage(file=relative_to_assets("image_8.png"))
-image_8 = canvas.create_image(1183.0, 324.0, image=image_image_8)
+image_8 = canvas.create_image(1183+20, 324.0, image=image_image_8)
 
 image_image_9 = PhotoImage(file=relative_to_assets("image_9.png"))
 image_9 = canvas.create_image(1366.0, 591.0, image=image_image_9)
@@ -415,7 +415,7 @@ image_image_11 = PhotoImage(file=relative_to_assets("image_11.png"))
 image_11 = canvas.create_image(1576.0, 614.0, image=image_image_11)
 
 image_image_12 = PhotoImage(file=relative_to_assets("image_12.png"))
-image_12 = canvas.create_image(1320.0, 409.0, image=image_image_12)
+image_12 = canvas.create_image(1320+24, 409.0, image=image_image_12)
 
 image_image_13 = PhotoImage(file=relative_to_assets("image_13.png"))
 image_13 = canvas.create_image(1567.0, 1057.0, image=image_image_13)
@@ -442,13 +442,13 @@ image_image_22 = PhotoImage(file=relative_to_assets("image_22.png"))
 image_22 = canvas.create_image(940.999986493181, 475.0, image=image_image_22)
 
 #Natočení páky 1
-angle_label_paka = tk.Label(window, textvariable=natoceni_paky, justify='center', bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
-angle_label_paka.place(x=1256, y=300)
+angle_label_paka = tk.Label(window, textvariable=natoceni_paky, anchor="e", bg='#8CDAFF', fg="#393939", font=("Arial", -40, "bold"))
+angle_label_paka.place(x=1256+8, y=300+4, width=150, height=40)
 
 
 #Natočení páky 2
-angle_label_paka_hlavni = tk.Label(window, textvariable= natoceni_paky_hlavni, justify='center', bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
-angle_label_paka.place(x=1267-11, y=386)
+#angle_label_paka_hlavni = tk.Label(window, textvariable= natoceni_paky_hlavni, anchor="e", bg='grey', fg="#393939", font=("Arial", -40, "bold"))
+#angle_label_paka.place(x=1267-1, y=386+5, width=150, height=40)
 # canvas.create_text(
 #     1267-11,
 #     386,
@@ -459,8 +459,8 @@ angle_label_paka.place(x=1267-11, y=386)
 # )
 
 #Natočení kola
-angle_label_kolo = tk.Label(window, textvariable=natoceni_kola, justify='center', bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
-angle_label_kolo.place(x=1135-11, y=1230)
+angle_label_kolo = tk.Label(window, textvariable=natoceni_kola, anchor="e", bg='#8CDAFF', fg="#393939", font=("Arial", -40, "bold"))
+angle_label_kolo.place(x=1135-25, y=1230+4, width=150, height=40)
 
 # canvas.create_text(
 #     1135-11,
@@ -558,29 +558,12 @@ entry_os_vzdalenost.bind("<Return>", get_os_vzdalenost_value)
 entry_os_vzdalenost.bind("<KP_Enter>", get_os_vzdalenost_value)
 
 #Lankový snímač
-lanko_label = tk.Label(window, textvariable=lanko, justify="center", bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
-lanko_label.place(x=1475, y=1184)
-# canvas.create_text(
-#     1475,
-#     1184,
-#     anchor="nw",
-#     text="160,5",
-#     fill="#000000",
-#     font=("Arial", 32 * -1, "bold")
-# )
+lanko_label = tk.Label(window, textvariable=lanko, anchor='e', bg='#8CDAFF', fg="#393939", font=("Arial", -36, "bold"))
+lanko_label.place(x=1435, y=1184, width=122, height=34)
 
 #Laserový snímač
-laser_label = tk.Label(window, textvariable=laser, justify="center", bg='#8CDAFF', font=("Arial", 36 * -1, "bold"))
-laser_label.place(x=1475, y=1301)
-
-# canvas.create_text(
-#     1475,
-#     1301,
-#     anchor="nw",
-#     text="175,5",
-#     fill="#000000",
-#     font=("Arial", 32 * -1, "bold")
-# )
+laser_label = tk.Label(window, textvariable=laser, anchor='e', bg='#8CDAFF', fg="#393939", font=("Arial", -36, "bold"))
+laser_label.place(x=1435, y=1301, width=122, height=34)
 
 def close_window(event=None):
     on_closing()  # Zavolat funkci on_closing pro správné ukončení
@@ -589,24 +572,24 @@ def close_window(event=None):
 Camera shitstorm
 '''
 
-def update_frame(queue):
-    if not queue.empty():
-        frame = queue.get()
-        if frame is not None:
-            frame = cv2.resize(frame, (704, 461))
-            photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
-            canvas.create_image(cmx, cmy, image=photo, anchor=tk.NW)
-            window.photo = photo
-    window.after(33, update_frame, queue)  # Cca 30 fps
+# def update_frame(queue):
+#     if not queue.empty():
+#         frame = queue.get()
+#         if frame is not None:
+#             frame = cv2.resize(frame, (704, 461))
+#             photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
+#             canvas.create_image(cmx, cmy, image=photo, anchor=tk.NW)
+#             window.photo = photo
+#     window.after(33, update_frame, queue)  # Cca 30 fps
 
-# Inicializace fronty a spuštění video procesu
-frame_queue = Queue()
-recording_queue = Queue()
-process = Process(target=camera.video_process, args=(frame_queue, recording_queue))
-process.start()
+# # Inicializace fronty a spuštění video procesu
+# frame_queue = Queue()
+# recording_queue = Queue()
+# process = Process(target=camera.video_process, args=(frame_queue, recording_queue))
+# process.start()
 
-# Inicializace náhledu
-window.after(0, update_frame, frame_queue)
+# # Inicializace náhledu
+# window.after(0, update_frame, frame_queue)
 
 
 # Bind klávesy "Q" pro zavření okna

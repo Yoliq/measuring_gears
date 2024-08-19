@@ -54,9 +54,9 @@ class Stepper_motor:
             #     GPIO.output(self.dir_pin, GPIO.HIGH)
             #     for _ in range(int(cuknuti)):
             #         GPIO.output(self.step_pin, GPIO.HIGH)
-            #         time.sleep(self.speed)
+            #         time.sleep(1/self.speed)
             #         GPIO.output(self.step_pin, GPIO.LOW)
-            #         time.sleep(self.speed)
+            #         time.sleep(1/self.speed)
             #     self.motor_running = False
             #     # TODO vynulovat hodnoty pro natoceni paky
             #     break
@@ -64,10 +64,10 @@ class Stepper_motor:
             now = datetime.now()
             print(f"While loop {now-old_now}")
             GPIO.output(self.step_pin, GPIO.HIGH)
-            time.sleep(self.speed)
+            time.sleep(1/self.speed)
             print(f"GPIO LOW {datetime.now()-now}")
             GPIO.output(self.step_pin, GPIO.LOW)
-            time.sleep(self.speed)
+            time.sleep(1/self.speed)
             steps_taken +=1
             print(f"Steps_taken:{steps_taken}")
             old_now = now
