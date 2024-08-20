@@ -47,7 +47,6 @@ serial_reader_osove_vz.start_reading()
 '''
 CREATE MOTORS
 '''
-
 big_motor = Stepper_motor(STEP_PIN_BIG_MOTOR,
                           DIR_PIN_BIG_MOTOR,
                           ENABLE_PIN_BIG_MOTOR,
@@ -65,7 +64,6 @@ small_motor = Stepper_motor(STEP_PIN_SMALL_MOTOR,
                           PREVODOVY_POMER_SMALL_MOTOR,
                           SEKVENCE_VELIKOST_NATOCENI,
                           ENDSTOP_VELIKOST_CUKNUTI)
-
 
 '''
 Takes path as string.
@@ -113,8 +111,8 @@ natoceni_kola = StringVar()
 natoceni_kola.set("Čekám")  # Původní hodnota
 
 # Proměnná pro uchování hodnoty natočení páky hlavní
-natoceni_paky_hlavni = StringVar()
-natoceni_paky_hlavni.set("Čekám")  # Původní hodnota
+#natoceni_paky_hlavni = StringVar()
+#natoceni_paky_hlavni.set("Čekám")  # Původní hodnota
 
 # Proměnné pro osové vzdálenosti
 lanko = StringVar()
@@ -126,7 +124,7 @@ laser.set("Čekám")
 def update_angle():
     natoceni_paky.set(serial_reader_hnaci_kolo.get_formatted_angle())
     natoceni_kola.set(serial_reader_hnane_kolo.get_formatted_angle())
-    natoceni_paky_hlavni.set(natoceni_paky.get())
+    #natoceni_paky_hlavni.set(natoceni_paky.get())
     lanko.set(serial_reader_osove_vz.get_formatted_lanko_value())
     laser.set(serial_reader_osove_vz.get_formatted_laser_value())
     window.after(100, update_angle)  # Aktualizace každých 100 ms
@@ -148,7 +146,7 @@ endstop_paka = Endstop(ENDSTOP_PIN,
                         serial_reader_hnane_kolo,
                         natoceni_paky,
                         natoceni_kola,
-                        natoceni_paky_hlavni)
+                        """natoceni_paky_hlavni""")
 
 # Zahájení aktualizace hodnoty natočení páky
 update_angle()
@@ -166,7 +164,6 @@ def home(event):
 '''
 Camera code
 '''
-
 # def update_frame(queue):
 #     if not queue.empty():
 #         frame = queue.get()
