@@ -1,11 +1,10 @@
 import RPi.GPIO as GPIO
 import time
-from threading import Thread
+from threading import Thread, Event
 from tkinter import Tk, Button, Canvas, PhotoImage
 from pathlib import Path
 GPIO.setwarnings(False)
 from datetime import datetime
-
 
 class Stepper_motor:
     def __init__(self, step_pin, dir_pin, enable_pin, speed, steps, 
@@ -19,6 +18,7 @@ class Stepper_motor:
         self.sekvence_velikost_natoceni = velikost_natoceni
         self.endstop_velikost_cuknuti = endstop_velikost_cuknuti
         self.motor_running = False
+        self.stop_event = Event()
         self._GPIO_setup()
         
     def _GPIO_setup(self):
@@ -44,23 +44,7 @@ class Stepper_motor:
 
         steps_taken = 0
         old_now = datetime.now()
-        while self.motor_running and (steps is None or steps_taken<steps):
-            # ENDSTOP PRESSED PART
-            # if GPIO.input(self.end_stop_pin) == GPIO.LOW:  # Koncový spínač je stisknutý
-            #     print("End stop reached!")
-            #     self.stop_motor()
-            #     time.sleep(0.5)
-            #     cuknuti = self.steps / 360 *105.23*1.5 # otočení o 1,5 stupňů
-            #     GPIO.output(self.dir_pin, GPIO.HIGH)
-            #     for _ in range(int(cuknuti)):
-            #         GPIO.output(self.step_pin, GPIO.HIGH)
-            #         time.sleep(1/self.speed)
-            #         GPIO.output(self.step_pin, GPIO.LOW)
-            #         time.sleep(1/self.speed)
-            #     self.motor_running = False
-            #     # TODO vynulovat hodnoty pro natoceni paky
-            #     break
-            
+        while not self.stop_event.is_set() and (steps is None or steps_taken < steps):
             now = datetime.now()
             print(f"While loop {now-old_now}")
             GPIO.output(self.step_pin, GPIO.HIGH)
@@ -68,7 +52,7 @@ class Stepper_motor:
             print(f"GPIO LOW {datetime.now()-now}")
             GPIO.output(self.step_pin, GPIO.LOW)
             time.sleep(1/self.speed)
-            steps_taken +=1
+            steps_taken += 1
             print(f"Steps_taken:{steps_taken}")
             old_now = now
 
@@ -76,27 +60,32 @@ class Stepper_motor:
 
     def start_motor(self, direction):
         self.motor_running = True
+        self.stop_event.clear()
         motor_thread = Thread(target=self.step_motor, args=(direction,))
         motor_thread.start()
+        self.motor_thread = motor_thread
 
     def stop_motor(self):
         self.motor_running = False
+        self.stop_event.set()
+        if hasattr(self, 'motor_thread'):
+            self.motor_thread.join()
         
     def sekvence_up(self, sekvence_velikost_natoceni):
         steps = self.steps / 360 * self.prevodovy_pomer * sekvence_velikost_natoceni
         self.motor_running = True
+        self.stop_event.clear()
         motor_thread = Thread(target=self.step_motor, args=(GPIO.HIGH, steps))
         motor_thread.start() # Start parallel thread
-        # space for things to be done in between
         motor_thread.join()  # Wait for the rotation to complete
         self.motor_running = False 
 
     def sekvence_down(self, sekvence_velikost_natoceni):
         steps = self.steps / 360 * self.prevodovy_pomer * sekvence_velikost_natoceni
         self.motor_running = True
+        self.stop_event.clear()
         motor_thread = Thread(target=self.step_motor, args=(GPIO.LOW, steps))
         motor_thread.start() # Start parallel thread
-        # space for things to be done in between
         motor_thread.join()  # Wait for the rotation to complete
         self.motor_running = False
 
