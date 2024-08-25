@@ -8,10 +8,12 @@ import RPi.GPIO as GPIO
 import re 
 import camera
 import cv2
-import time
+from time import time, sleep
 from serial_read import SerialReader
 from serial_length import DualSerialReader
 from multiprocessing import Process, Queue
+import csv
+import threading 
 
 from constants import *
 from Endstop import Endstop
@@ -26,23 +28,52 @@ START SERIAL READERS
 serial_reader_hnaci_kolo = SerialReader(USB_IRC_HNACI_KOLO, SERIAL_BAUDRATE)
 # Pripojeni a odpojeni Serialu (bypass chyby, kdy se serial otevre az na druhy pokus)
 serial_reader_hnaci_kolo.start_reading()
-time.sleep(1)
+sleep(1)
 serial_reader_hnaci_kolo.stop_reading()
-time.sleep(1)
+sleep(1)
 # Zahajeni komunikace naostro
 serial_reader_hnaci_kolo.start_reading()
 
 # Hnane kolos
 serial_reader_hnane_kolo = SerialReader(USB_IRC_HNANE_KOLO, SERIAL_BAUDRATE)
 serial_reader_hnane_kolo.start_reading()
-time.sleep(1)
+sleep(1)
 serial_reader_hnane_kolo.stop_reading()
-time.sleep(1)
+sleep(1)
 serial_reader_hnane_kolo.start_reading()
 
 #Osove vzdalenosti
 serial_reader_osove_vz = DualSerialReader(USB_ARDUINO_LENGTH, SERIAL_BAUDRATE_ARD)
 serial_reader_osove_vz.start_reading()
+
+# Globální proměnné pro záznam dat
+data_recording = False
+recorded_data = []
+
+def start_data_recording():
+    global data_recording, recorded_data
+    data_recording = True
+    recorded_data = []
+
+def stop_data_recording():
+    global data_recording
+    data_recording = False
+    export_data_to_csv()
+
+def export_data_to_csv():
+    global recorded_data
+    filename = f"data_record_{int(time())}.csv"
+    with open(filename, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Time", "Angle"])
+        writer.writerows(recorded_data)
+    print(f"Data exported to {filename}")
+
+def record_angle_data(serial_reader):
+    while data_recording:
+        angle = serial_reader.get_angle()
+        recorded_data.append((time(), angle))
+        sleep(0.1)  # Adjust the sleep time as needed
 
 '''
 CREATE MOTORS
@@ -151,11 +182,16 @@ endstop_paka = Endstop(ENDSTOP_PIN,
 # Zahájení aktualizace hodnoty natočení páky
 update_angle()
 
-def start_motor_sequence(motor, direction):
+def start_motor_sequence(motor, direction, serial_reader):
+    start_data_recording()
+    Thread(target=record_angle_data, args=(serial_reader,)).start()
+    
     if direction == "up":
         motor.sekvence_up(SEKVENCE_VELIKOST_NATOCENI)
     else:
         motor.sekvence_down(SEKVENCE_VELIKOST_NATOCENI)
+    
+    stop_data_recording()
 
 def home(event):
     print("Home button pressed")
@@ -384,7 +420,7 @@ button_10_pressed = Image.open(button_image_10_pressed_path).convert("RGBA")
 button_10_pressed_photo = ImageTk.PhotoImage(button_10_pressed)
 button_10_canvas = canvas.create_image(26, 182, image=button_10_photo, anchor="nw")
 
-canvas.tag_bind(button_10_canvas, "<Button-1>", lambda event: (on_button_press(event, button_10_canvas, button_10_pressed_photo, "Button 10"), Thread(target=start_motor_sequence, args=(big_motor, "up")).start()))
+canvas.tag_bind(button_10_canvas, "<Button-1>", lambda event: (on_button_press(event, button_10_canvas, button_10_pressed_photo, "Button 10"), Thread(target=start_motor_sequence, args=(big_motor, "up", serial_reader_hnaci_kolo)).start()))
 canvas.tag_bind(button_10_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_10_canvas, button_10_photo, "Button 10"))
 
 # Tlacitko 11 SEKVENCE DOWN
@@ -396,7 +432,7 @@ button_11_pressed = Image.open(button_image_11_pressed_path).convert("RGBA")
 button_11_pressed_photo = ImageTk.PhotoImage(button_11_pressed)
 button_11_canvas = canvas.create_image(406, 182, image=button_11_photo, anchor="nw")
 
-canvas.tag_bind(button_11_canvas, "<Button-1>", lambda event: (on_button_press(event, button_11_canvas, button_11_pressed_photo, "Button 11"), Thread(target=start_motor_sequence, args=(big_motor, "down")).start()))
+canvas.tag_bind(button_11_canvas, "<Button-1>", lambda event: (on_button_press(event, button_11_canvas, button_11_pressed_photo, "Button 11"), Thread(target=start_motor_sequence, args=(big_motor, "down", serial_reader_hnaci_kolo)).start()))
 canvas.tag_bind(button_11_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_11_canvas, button_11_photo, "Button 11"))
 
 image_image_10 = PhotoImage(file=relative_to_assets("image_10.png"))

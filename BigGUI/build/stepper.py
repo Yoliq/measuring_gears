@@ -46,14 +46,14 @@ class Stepper_motor:
         old_now = datetime.now()
         while not self.stop_event.is_set() and (steps is None or steps_taken < steps):
             now = datetime.now()
-            print(f"While loop {now-old_now}")
+            #print(f"While loop {now-old_now}")
             GPIO.output(self.step_pin, GPIO.HIGH)
             time.sleep(1/self.speed)
-            print(f"GPIO LOW {datetime.now()-now}")
+            #print(f"GPIO LOW {datetime.now()-now}")
             GPIO.output(self.step_pin, GPIO.LOW)
             time.sleep(1/self.speed)
             steps_taken += 1
-            print(f"Steps_taken:{steps_taken}")
+            #print(f"Steps_taken:{steps_taken}")
             old_now = now
 
         GPIO.output(self.enable_pin, GPIO.HIGH)  # Disable driver when stopping
