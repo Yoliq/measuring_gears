@@ -60,9 +60,9 @@ def stop_data_recording():
     data_recording = False
     export_data_to_csv()
 
-def export_data_to_csv():
+def export_data_to_csv(nazev):
     global recorded_data
-    filename = f"data_record_{int(time())}.csv"
+    filename = f"{nazev.get()}_datum.csv"
     with open(filename, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["Time", "Angle"])
