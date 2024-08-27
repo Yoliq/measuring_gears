@@ -46,34 +46,7 @@ serial_reader_hnane_kolo.start_reading()
 serial_reader_osove_vz = DualSerialReader(USB_ARDUINO_LENGTH, SERIAL_BAUDRATE_ARD)
 serial_reader_osove_vz.start_reading()
 
-# Globální proměnné pro záznam dat
-data_recording = False
-recorded_data = []
 
-def start_data_recording():
-    global data_recording, recorded_data
-    data_recording = True
-    recorded_data = []
-
-def stop_data_recording():
-    global data_recording
-    data_recording = False
-    export_data_to_csv()
-
-def export_data_to_csv(nazev):
-    global recorded_data
-    filename = f"{nazev.get()}_datum.csv"
-    with open(filename, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Time", "Angle"])
-        writer.writerows(recorded_data)
-    print(f"Data exported to {filename}")
-
-def record_angle_data(serial_reader):
-    while data_recording:
-        angle = serial_reader.get_angle()
-        recorded_data.append((time(), angle))
-        sleep(0.1)  # Adjust the sleep time as needed
 
 '''
 CREATE MOTORS
@@ -132,6 +105,37 @@ def end_fullscreen(event=None):
     window.state = False
     window.attributes("-fullscreen", False)
     return "break"
+
+# Globální proměnné pro záznam dat
+data_recording = False
+recorded_data = []
+nazev = StringVar()
+datum = StringVar()
+
+def start_data_recording():
+    global data_recording, recorded_data
+    data_recording = True
+    recorded_data = []
+
+def stop_data_recording():
+    global data_recording
+    data_recording = False
+    export_data_to_csv()
+
+def export_data_to_csv():
+    global recorded_data, nazev, datum
+    filename = f"{nazev.get()}_{datum.get()}.csv"
+    with open(filename, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Time", "Angle"])
+        writer.writerows(recorded_data)
+    print(f"Data exported to {filename}")
+
+def record_angle_data(serial_reader):
+    while data_recording:
+        angle = serial_reader.get_angle()
+        recorded_data.append((time(), angle))
+        sleep(0.1)  # Adjust the sleep time as needed
 
 # Proměnná pro uchování hodnoty natočení páky
 natoceni_paky = StringVar()
@@ -525,7 +529,7 @@ def restore_placeholder(event, entry, placeholder_text):
         entry.insert(0, placeholder_text)
         entry.config(fg='grey')
 
-#Zadat název
+
 entry_nazev = Entry(window, font=("Arial", 32, "italic"), bd=0, highlightthickness=0, relief="flat", validate="key", validatecommand=(validate_filename_command, "%P"))
 entry_nazev.place(x=1319, y=50, width=416)
 set_placeholder(entry_nazev, "Zadej název") #Placeholder pro název měření
@@ -534,8 +538,9 @@ entry_nazev.bind("<FocusIn>", lambda event: clear_placeholder(event, entry_nazev
 entry_nazev.bind("<FocusOut>", lambda event: restore_placeholder(event, entry_nazev, "Zadej název"))
 
 def get_nazev(event=None):
-    nazev= entry_nazev.get()
-    print(f"Název: {nazev}")
+    global nazev
+    nazev.set(entry_nazev.get())
+    print(f"Název: {nazev.get()}")
     window.focus_set()
 
 entry_nazev.bind("<Return>", get_nazev)
@@ -550,8 +555,9 @@ entry_datum.bind("<FocusIn>", lambda event: clear_placeholder(event, entry_datum
 entry_datum.bind("<FocusOut>", lambda event: restore_placeholder(event, entry_datum, "Datum"))
 
 def get_datum(event=None):
-    datum= entry_datum.get()
-    print(f"Datum: {datum}")
+    global datum
+    datum.set(entry_datum.get())
+    print(f"Datum: {datum.get()}")
     window.focus_set()
 
 entry_datum.bind("<Return>", get_datum)
