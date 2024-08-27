@@ -110,10 +110,14 @@ def end_fullscreen(event=None):
 data_recording = False
 recorded_data = []
 nazev = StringVar()
+nazev.set("Název")
 datum = StringVar()
+datum.set("Datum")
+start_time = 0
 
 def start_data_recording():
-    global data_recording, recorded_data
+    global data_recording, recorded_data, start_time
+    start_time = time()
     data_recording = True
     recorded_data = []
 
@@ -127,14 +131,17 @@ def export_data_to_csv():
     filename = f"{nazev.get()}_{datum.get()}.csv"
     with open(filename, mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["Time", "Angle"])
+        writer.writerow(["Time", "Angle_paka", "Angle_kolo"])
         writer.writerows(recorded_data)
-    print(f"Data exported to {filename}")
+    print(f"Data exportována do {filename}")
 
-def record_angle_data(serial_reader):
+def record_angle_data(serial_reader_hnaci_kolo, serial_reader_hnane_kolo):
+    global start_time
     while data_recording:
-        angle = serial_reader.get_angle()
-        recorded_data.append((time(), angle))
+        elapsed_time = round(time() - start_time, 4)
+        angle_paka = serial_reader_hnaci_kolo.get_angle()
+        angle_kolo = serial_reader_hnane_kolo.get_angle()
+        recorded_data.append((elapsed_time, angle_paka, angle_kolo))
         sleep(0.1)  # Adjust the sleep time as needed
 
 # Proměnná pro uchování hodnoty natočení páky
@@ -186,9 +193,10 @@ endstop_paka = Endstop(ENDSTOP_PIN,
 # Zahájení aktualizace hodnoty natočení páky
 update_angle()
 
-def start_motor_sequence(motor, direction, serial_reader):
+def start_motor_sequence(motor, direction, serial_reader_hnaci_kolo):
     start_data_recording()
-    Thread(target=record_angle_data, args=(serial_reader,)).start()
+    recording_thread = threading.Thread(target=record_angle_data, args=(serial_reader_hnaci_kolo, serial_reader_hnane_kolo))
+    recording_thread.start()
     
     if direction == "up":
         motor.sekvence_up(SEKVENCE_VELIKOST_NATOCENI)
@@ -196,6 +204,7 @@ def start_motor_sequence(motor, direction, serial_reader):
         motor.sekvence_down(SEKVENCE_VELIKOST_NATOCENI)
     
     stop_data_recording()
+    recording_thread.join()
 
 def home(event):
     print("Home button pressed")
