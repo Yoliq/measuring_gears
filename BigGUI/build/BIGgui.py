@@ -142,7 +142,7 @@ def record_angle_data(serial_reader_hnaci_kolo, serial_reader_hnane_kolo):
         angle_paka = serial_reader_hnaci_kolo.get_angle()
         angle_kolo = serial_reader_hnane_kolo.get_angle()
         recorded_data.append((elapsed_time, angle_paka, angle_kolo))
-        sleep(0.1)  # Adjust the sleep time as needed
+        sleep(0.1)  #Frekvence vyčítání v [s]
 
 # Proměnná pro uchování hodnoty natočení páky
 natoceni_paky = StringVar()
