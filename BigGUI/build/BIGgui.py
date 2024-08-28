@@ -305,6 +305,24 @@ def on_button_release(event, button_canvas, photo, button_name):
     canvas.move(button_canvas, -4, -4)
     print(f"{button_name} released")
 
+def do_nothing(event=None):
+    pass
+
+def bind_button_events(button_canvas, button_photo, button_pressed_photo, button_name, press_command, release_command):
+    def on_press(event):
+        on_button_press(event, button_canvas, button_pressed_photo, button_name)
+        Thread(target=press_command, args=(event,)).start()
+
+    def on_release(event):
+        on_button_release(event, button_canvas, button_photo, button_name)
+        try:
+            release_command(event)
+        except TypeError:
+            release_command()
+
+    canvas.tag_bind(button_canvas, "<Button-1>", on_press)
+    canvas.tag_bind(button_canvas, "<ButtonRelease-1>", on_release)
+
 # Tlacitko 1 Natoceni motoru nahoru
 button_image_1_path = relative_to_assets("button_1.png")
 button_image_1_pressed_path = relative_to_assets("button_1_pressed.png")
@@ -314,8 +332,9 @@ button_1_pressed = Image.open(button_image_1_pressed_path).convert("RGBA")
 button_1_pressed_photo = ImageTk.PhotoImage(button_1_pressed)
 button_1_canvas = canvas.create_image(57, 435, image=button_1_photo, anchor="nw")
 
-canvas.tag_bind(button_1_canvas, "<Button-1>", lambda event: (on_button_press(event, button_1_canvas, button_1_pressed_photo, "Button 1"), big_motor.on_button_press_forward(event)))
-canvas.tag_bind(button_1_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_1_canvas, button_1_photo, "Button 1"), big_motor.on_button_release_forward(event)))
+bind_button_events(button_1_canvas, button_1_photo, button_1_pressed_photo, "Button 1", big_motor.on_button_press_forward, big_motor.on_button_release_forward)
+# canvas.tag_bind(button_1_canvas, "<Button-1>", lambda event: (on_button_press(event, button_1_canvas, button_1_pressed_photo, "Button 1"), big_motor.on_button_press_forward(event)))
+# canvas.tag_bind(button_1_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_1_canvas, button_1_photo, "Button 1"), big_motor.on_button_release_forward(event)))
 
 # Tlacitko 2 Natoceni motoru dolu
 button_image_2_path = relative_to_assets("button_2.png")
@@ -404,8 +423,9 @@ button_8_pressed = Image.open(button_image_8_pressed_path).convert("RGBA")
 button_8_pressed_photo = ImageTk.PhotoImage(button_8_pressed)
 button_8_canvas = canvas.create_image(1953, 28, image=button_8_photo, anchor="nw")
 
-canvas.tag_bind(button_8_canvas, "<Button-1>", lambda event: (on_button_press(event, button_8_canvas, button_8_pressed_photo, "Button 8"), export_data_to_csv()))
-canvas.tag_bind(button_8_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_8_canvas, button_8_photo, "Button 8"))
+bind_button_events(button_8_canvas, button_8_photo, button_8_pressed_photo, "Button 8", export_data_to_csv, do_nothing)
+# canvas.tag_bind(button_8_canvas, "<Button-1>", lambda event: (on_button_press(event, button_8_canvas, button_8_pressed_photo, "Button 8"), export_data_to_csv()))
+# canvas.tag_bind(button_8_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_8_canvas, button_8_photo, "Button 8"))
 
 image_image_17 = PhotoImage(file=relative_to_assets("image_17.png"))
 image_17 = canvas.create_image(340.0, 1288.0, image=image_image_17)
