@@ -1,13 +1,13 @@
 from pathlib import Path
 import tkinter as tk
-from tkinter import Tk, Canvas, Entry, Text, PhotoImage, StringVar
+from tkinter import Tk, Canvas, Entry, Text, PhotoImage, StringVar, filedialog
 from PIL import Image, ImageTk
 from stepper import Stepper_motor
 from threading import Thread
 import RPi.GPIO as GPIO
 import re 
-import camera
-import cv2
+#import camera
+#import cv2
 from time import time, sleep
 from serial_read import SerialReader
 from serial_length import DualSerialReader
@@ -114,6 +114,7 @@ nazev.set("Název")
 datum = StringVar()
 datum.set("Datum")
 start_time = 0
+#file_path = StringVar()
 
 def start_data_recording():
     global data_recording, recorded_data, start_time
@@ -126,10 +127,15 @@ def stop_data_recording():
     data_recording = False
     export_data_to_csv()
 
+def select_folder():
+    file_dir = filedialog.askdirectory()
+    print(f"Vybraná složka: {file_dir}")
+
 def export_data_to_csv():
     global recorded_data, nazev, datum
     filename = f"{nazev.get()}_{datum.get()}.csv"
-    with open(filename, mode='w', newline='') as file:
+    file_path = filedialog.asksaveasfilename(initialfile=filename, filetypes=[("CSV files", "*.csv")])
+    with open(file_path, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["Time", "Angle_paka", "Angle_kolo"])
         writer.writerows(recorded_data)
@@ -398,7 +404,7 @@ button_8_pressed = Image.open(button_image_8_pressed_path).convert("RGBA")
 button_8_pressed_photo = ImageTk.PhotoImage(button_8_pressed)
 button_8_canvas = canvas.create_image(1953, 28, image=button_8_photo, anchor="nw")
 
-canvas.tag_bind(button_8_canvas, "<Button-1>", lambda event: on_button_press(event, button_8_canvas, button_8_pressed_photo, "Button 8"))
+canvas.tag_bind(button_8_canvas, "<Button-1>", lambda event: (on_button_press(event, button_8_canvas, button_8_pressed_photo, "Button 8"), export_data_to_csv()))
 canvas.tag_bind(button_8_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_8_canvas, button_8_photo, "Button 8"))
 
 image_image_17 = PhotoImage(file=relative_to_assets("image_17.png"))
