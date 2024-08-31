@@ -114,7 +114,7 @@ nazev.set("Název")
 datum = StringVar()
 datum.set("Datum")
 start_time = 0
-#file_path = StringVar()
+file_dir = StringVar()
 
 def start_data_recording():
     global data_recording, recorded_data, start_time
@@ -128,13 +128,14 @@ def stop_data_recording():
     export_data_to_csv()
 
 def select_folder():
+    global file_dir
     file_dir = filedialog.askdirectory()
     print(f"Vybraná složka: {file_dir}")
 
 def export_data_to_csv():
-    global recorded_data, nazev, datum
+    global recorded_data, nazev, datum, file_dir
     filename = f"{nazev.get()}_{datum.get()}.csv"
-    file_path = filedialog.asksaveasfilename(initialfile=filename, filetypes=[("CSV files", "*.csv")])
+    file_path = filedialog.asksaveasfilename(initialdir=file_dir, initialfile=filename, filetypes=[("CSV files", "*.csv")])
     with open(file_path, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["Time", "Angle_paka", "Angle_kolo"])
@@ -406,15 +407,6 @@ button_8_pressed = Image.open(button_image_8_pressed_path).convert("RGBA")
 button_8_pressed_photo = ImageTk.PhotoImage(button_8_pressed)
 button_8_canvas = canvas.create_image(1953, 28, image=button_8_photo, anchor="nw")
 
-# def on_button_8_press(event):
-#     on_button_press(event, button_8_canvas, button_8_pressed_photo, "Button 8")
-#     threading.Thread(target=export_data_to_csv).start()
-
-# def on_button_8_release(event):
-#     on_button_release(event, button_8_canvas, button_8_photo, "Button 8")
-
-# canvas.tag_bind(button_8_canvas, "<Button-1>", on_button_8_press)
-# canvas.tag_bind(button_8_canvas, "<ButtonRelease-1>", on_button_8_release)
 canvas.tag_bind(button_8_canvas, "<Button-1>", lambda event: (on_button_press(event, button_8_canvas, button_8_pressed_photo, "Button 8")))
 canvas.tag_bind(button_8_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_8_canvas, button_8_photo, "Button 8"), select_folder()))
 
