@@ -91,6 +91,7 @@ def validate_numeric_input(new_value):
 GUI START
 '''
 window = Tk()
+window.title("Tuhomír Ozub")
 window.geometry("2560x1440")
 window.configure(bg="#FFFFFF")
 

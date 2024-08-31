@@ -1,32 +1,43 @@
-import csv
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk #zobrazení grafu v tkinteru
+import tkinter as tk
+import numpy as np
+import pandas as pd
 
-def read_csv(filename):
-    times = []
-    angles_paka = []
-    angles_kolo = []
+# Initialize Tkinter and Matplotlib Figure
+root = tk.Tk()
+fig, ax = plt.subplots(figsize=(7.04, 4.6), dpi=100) # 704x460 pixelů
+ 
+# Tkinter Application
+frame = tk.Frame(root)
+label = tk.Label(text = "Matplotlib + Tkinter!")
+label.config(font=("Courier", 32))
+label.pack()
 
-    with open(filename, mode='r') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            times.append(float(row["Time"]))
-            angles_paka.append(float(row["Angle_paka"]))
-            angles_kolo.append(float(row["Angle_kolo"]))
+# Nacteni dat z csv
+data_do_grafu = pd.read_csv('/home/pi/Petr/measuring_gears/BigGUI/build/csv/Test_csv_1.csv')
+data_do_grafu.head()
+t = data_do_grafu.iloc[:, 0]
+uhel1 = data_do_grafu.iloc[:, 1]
+uhel2 = data_do_grafu.iloc[:, 2]
 
-    return times, angles_paka, angles_kolo
+# Create Canvas
+canvas = FigureCanvasTkAgg(fig, master=root)  
+canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
-def plot_data(times, angles_paka, angles_kolo):
-    plt.figure(figsize=(10, 5))
-    plt.plot(times, angles_paka, label='Angle_paka')
-    plt.plot(times, angles_kolo, label='Angle_kolo')
-    plt.xlabel('Čas [s]')
-    plt.ylabel('Úhel (°)')
-    plt.title('Grafík')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+toolbar = NavigationToolbar2Tk(canvas, root, pack_toolbar=False)
+toolbar.update()
+toolbar.pack(anchor="center", fill=tk.X)
 
-if __name__ == "__main__":
-    filename = 'Test_oba_1.csv'  # Změňte na název vašeho CSV souboru
-    times, angles_paka, angles_kolo = read_csv(filename)
-    plot_data(times, angles_paka, angles_kolo)
+frame.pack() 
+# Plot data on Matplotlib Figure
+# t = np.arange(0, 2*np.pi, .01)
+# ax.plot(t, np.sin(t))
+ax.plot(t, uhel1, label='Úhel 1')
+ax.plot(t, uhel2, label='Úhel 2')
+ax.set_xlabel('Čas [s]')
+ax.set_ylabel('Úhel [°]')
+ax.legend()
+canvas.draw()
+ 
+root.mainloop()
