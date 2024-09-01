@@ -141,8 +141,8 @@ def export_data_to_csv():
         writer = csv.writer(file)
         writer.writerow(["Time", "Angle_paka", "Angle_kolo"])
         writer.writerows(recorded_data)
-    print(f"Data exportována do {filename}")
-
+    print(f"Data exportována do {file_path}")
+    
 def record_angle_data(serial_reader_hnaci_kolo, serial_reader_hnane_kolo):
     global start_time
     while data_recording:
