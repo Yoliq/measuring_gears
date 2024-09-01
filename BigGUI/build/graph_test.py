@@ -28,7 +28,7 @@ t = data_do_grafu.iloc[:, 0]
 uhel1 = data_do_grafu.iloc[:, 1]
 uhel2 = data_do_grafu.iloc[:, 2]
 
-fig, ax = plt.subplots(figsize=(7.04, 4.6), dpi=100) # 704x460 pixelů
+fig, ax = plt.subplots(figsize=(7.04, 4.6), dpi=100, tight_layout=True) # 704x460 pixelů
 graf_canvas = FigureCanvasTkAgg(fig, master=window)  
 graf = graf_canvas.get_tk_widget()
 graf.place(x=1811, y=262, width=704, height=460)

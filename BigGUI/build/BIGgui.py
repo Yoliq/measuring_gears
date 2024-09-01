@@ -14,6 +14,9 @@ from serial_length import DualSerialReader
 from multiprocessing import Process, Queue
 import csv
 import threading 
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk #zobrazení grafu v tkinteru
+import pandas as pd
 
 from constants import *
 from Endstop import Endstop
@@ -142,6 +145,27 @@ def export_data_to_csv():
         writer.writerow(["Time", "Angle_paka", "Angle_kolo"])
         writer.writerows(recorded_data)
     print(f"Data exportována do {file_path}")
+    # Nacteni dat z csv a vytvoření grafu
+    data_do_grafu = pd.read_csv('/home/pi/Petr/measuring_gears/BigGUI/build/csv/Test_csv_1.csv')
+    data_do_grafu.head()
+    t = data_do_grafu.iloc[:, 0]
+    uhel1 = data_do_grafu.iloc[:, 1]
+    uhel2 = data_do_grafu.iloc[:, 2]
+    fig, ax = plt.subplots(figsize=(7.04, 4.3), dpi=100, tight_layout=True) # 704x460 pixelů
+    graf_canvas = FigureCanvasTkAgg(fig, master=window)  
+    graf = graf_canvas.get_tk_widget()
+    graf.place(x=1811+1, y=262-13, width=704, height=430)
+    #Ovládací lišta pro graf
+    toolbar = NavigationToolbar2Tk(graf_canvas, window, pack_toolbar=False)
+    toolbar.update()
+    toolbar.place(x=1811+1, y=679, width=704, height=30)
+    # Vykreslení grafu
+    ax.plot(t, uhel1, label='Úhel 1')
+    ax.plot(t, uhel2, label='Úhel 2')
+    ax.set_xlabel('Čas [s]')
+    ax.set_ylabel('Úhel [°]')
+    ax.legend()
+    graf_canvas.draw()    
     
 def record_angle_data(serial_reader_hnaci_kolo, serial_reader_hnane_kolo):
     global start_time
