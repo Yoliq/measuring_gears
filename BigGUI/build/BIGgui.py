@@ -1,4 +1,5 @@
 from pathlib import Path
+import subprocess
 import tkinter as tk
 from tkinter import Tk, Canvas, Entry, Text, PhotoImage, StringVar, filedialog
 from PIL import Image, ImageTk
@@ -51,24 +52,25 @@ serial_reader_osove_vz.start_reading()
 '''
 CREATE MOTORS
 '''
-big_motor = Stepper_motor(STEP_PIN_BIG_MOTOR,
-                          DIR_PIN_BIG_MOTOR,
-                          ENABLE_PIN_BIG_MOTOR,
-                          SPEED_BIG_MOTOR,
-                          STEPS_BIG_MOTOR,
-                          PREVODOVY_POMER_BIG_MOTOR,
-                          SEKVENCE_VELIKOST_NATOCENI,
-                          ENDSTOP_VELIKOST_CUKNUTI)
+# big_motor = Stepper_motor(STEP_PIN_BIG_MOTOR,
+#                           DIR_PIN_BIG_MOTOR,
+#                           ENABLE_PIN_BIG_MOTOR,
+#                           SPEED_BIG_MOTOR,
+#                           STEPS_BIG_MOTOR,
+#                           PREVODOVY_POMER_BIG_MOTOR,
+#                           SEKVENCE_VELIKOST_NATOCENI,
+#                           ENDSTOP_VELIKOST_CUKNUTI)
 
-small_motor = Stepper_motor(STEP_PIN_SMALL_MOTOR,
-                          DIR_PIN_SMALL_MOTOR,
-                          ENABLE_PIN_SMALL_MOTOR,
-                          SPEED_SMALL_MOTOR,
-                          STEPS_SMALL_MOTOR,
-                          PREVODOVY_POMER_SMALL_MOTOR,
-                          SEKVENCE_VELIKOST_NATOCENI,
-                          ENDSTOP_VELIKOST_CUKNUTI)
-
+# small_motor = Stepper_motor(STEP_PIN_SMALL_MOTOR,
+#                           DIR_PIN_SMALL_MOTOR,
+#                           ENABLE_PIN_SMALL_MOTOR,
+#                           SPEED_SMALL_MOTOR,
+#                           STEPS_SMALL_MOTOR,
+#                           PREVODOVY_POMER_SMALL_MOTOR,
+#                           SEKVENCE_VELIKOST_NATOCENI,
+#                           ENDSTOP_VELIKOST_CUKNUTI)
+big_motor = None
+small_motor = None
 '''
 Takes path as string.
 Returns path object which points to location specified by ASSETS_PATH/path
@@ -189,14 +191,15 @@ def zero_angle():
 '''
 CREATE ENDSTOPS
 '''
-endstop_paka = Endstop(ENDSTOP_PIN,
-                        big_motor,
-                        ENDSTOP_OFFSET,
-                        serial_reader_hnaci_kolo,
-                        serial_reader_hnane_kolo,
-                        natoceni_paky,
-                        natoceni_kola,
-                        """natoceni_paky_hlavni""")
+# endstop_paka = Endstop(ENDSTOP_PIN,
+#                         big_motor,
+#                         ENDSTOP_OFFSET,
+#                         serial_reader_hnaci_kolo,
+#                         serial_reader_hnane_kolo,
+#                         natoceni_paky,
+#                         natoceni_kola,
+#                         """natoceni_paky_hlavni""")
+endstop_paka = None
 
 # Zahájení aktualizace hodnoty natočení páky
 update_angle()
@@ -296,7 +299,12 @@ image_4 = canvas.create_image(373.0, 416.0, image=image_image_4)
 image_image_5 = PhotoImage(file=relative_to_assets("image_5.png"))
 image_5 = canvas.create_image(181.0, 462.0, image=image_image_5)
 
-# TODO jsou tu potreba ty eventy?
+
+'''
+DEFINE BUTTON ACTIONS
+'''
+
+# Basic buttons
 def on_button_press(event, button_canvas, pressed_photo, button_name):
     canvas.itemconfig(button_canvas, image=pressed_photo)
     canvas.move(button_canvas, 4, 4)
@@ -306,6 +314,22 @@ def on_button_release(event, button_canvas, photo, button_name):
     canvas.itemconfig(button_canvas, image=photo)
     canvas.move(button_canvas, -4, -4)
     print(f"{button_name} released")
+
+def on_buttonOne_press(event, button_canvas, pressed_photo, button_name):
+    global big_motor_process # prohlasuji tuto promenou jako globalni, abychom meli pristup i z main namespace
+    canvas.itemconfig(button_canvas, image=pressed_photo)
+    canvas.move(button_canvas, 4, 4)
+    print(f"{button_name} clicked")
+
+    # start process
+    big_motor_process = subprocess.Popen(['python', 'stepper_pyprocess.py'])
+
+
+def on_buttonOne_release(event, button_canvas, photo, button_name, big_motor_process):
+    canvas.itemconfig(button_canvas, image=photo)
+    canvas.move(button_canvas, -4, -4)
+    print(f"{button_name} released")
+    big_motor_process.kill()
 
 
 
@@ -318,8 +342,9 @@ button_1_pressed = Image.open(button_image_1_pressed_path).convert("RGBA")
 button_1_pressed_photo = ImageTk.PhotoImage(button_1_pressed)
 button_1_canvas = canvas.create_image(57, 435, image=button_1_photo, anchor="nw")
 
-canvas.tag_bind(button_1_canvas, "<Button-1>", lambda event: (on_button_press(event, button_1_canvas, button_1_pressed_photo, "Button 1"), big_motor.on_button_press_forward(event)))
-canvas.tag_bind(button_1_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_1_canvas, button_1_photo, "Button 1"), big_motor.on_button_release_forward(event)))
+# Zde navazat start process
+canvas.tag_bind(button_1_canvas, "<Button-1>", lambda event: on_buttonOne_press(event, button_1_canvas, button_1_pressed_photo, "Button 1"))
+canvas.tag_bind(button_1_canvas, "<ButtonRelease-1>", lambda event: on_buttonOne_release(event, button_1_canvas, button_1_photo, "Button 1", big_motor_process))
 
 # Tlacitko 2 Natoceni motoru dolu
 button_image_2_path = relative_to_assets("button_2.png")
