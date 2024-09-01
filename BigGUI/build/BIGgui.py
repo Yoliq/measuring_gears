@@ -146,7 +146,7 @@ def export_data_to_csv():
         writer.writerows(recorded_data)
     print(f"Data exportována do {file_path}")
     # Nacteni dat z csv a vytvoření grafu
-    data_do_grafu = pd.read_csv('/home/pi/Petr/measuring_gears/BigGUI/build/csv/Test_csv_1.csv')
+    data_do_grafu = pd.read_csv(file_path)
     data_do_grafu.head()
     t = data_do_grafu.iloc[:, 0]
     uhel1 = data_do_grafu.iloc[:, 1]
