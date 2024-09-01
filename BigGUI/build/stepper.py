@@ -6,6 +6,8 @@ from pathlib import Path
 GPIO.setwarnings(False)
 from datetime import datetime
 
+# motor pyprocess test
+
 class Stepper_motor:
     def __init__(self, step_pin, dir_pin, enable_pin, speed, steps, 
                  prevodovy_pomer, velikost_natoceni, endstop_velikost_cuknuti):
