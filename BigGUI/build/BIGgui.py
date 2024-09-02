@@ -151,17 +151,17 @@ def export_data_to_csv():
     t = data_do_grafu.iloc[:, 0]
     uhel1 = data_do_grafu.iloc[:, 1]
     uhel2 = data_do_grafu.iloc[:, 2]
-    fig, ax = plt.subplots(figsize=(7.04, 4.3), dpi=100, tight_layout=True) # 704x460 pixelů
+    fig, ax = plt.subplots(figsize=(7.04, 4.6), dpi=100, tight_layout=True) # 704x460 pixelů
     graf_canvas = FigureCanvasTkAgg(fig, master=window)  
     graf = graf_canvas.get_tk_widget()
-    graf.place(x=1811+1, y=262-13, width=704, height=430)
+    graf.place(x=1811+1, y=262-13, width=704, height=460)
     #Ovládací lišta pro graf
-    toolbar = NavigationToolbar2Tk(graf_canvas, window, pack_toolbar=False)
-    toolbar.update()
-    toolbar.place(x=1811+1, y=679, width=704, height=30)
+    # toolbar = NavigationToolbar2Tk(graf_canvas, window, pack_toolbar=False)
+    # toolbar.update()
+    # toolbar.place(x=1811+1, y=679, width=704, height=30)
     # Vykreslení grafu
     ax.plot(t, uhel1, label='Úhel 1')
-    ax.plot(t, uhel2, label='Úhel 2')
+    #ax.plot(t, uhel2, label='Úhel 2')
     ax.set_xlabel('Čas [s]')
     ax.set_ylabel('Úhel [°]')
     ax.legend()
