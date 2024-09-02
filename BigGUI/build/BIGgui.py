@@ -315,21 +315,24 @@ def on_button_release(event, button_canvas, photo, button_name):
     canvas.move(button_canvas, -4, -4)
     print(f"{button_name} released")
 
-def on_buttonOne_press(event, button_canvas, pressed_photo, button_name):
+def on_buttonOne_press(event, button_canvas, pressed_photo, stepper: Stepper_motor):
     global big_motor_process # prohlasuji tuto promenou jako globalni, abychom meli pristup i z main namespace
     canvas.itemconfig(button_canvas, image=pressed_photo)
     canvas.move(button_canvas, 4, 4)
     print(f"{button_name} clicked")
 
-    # start process
-    big_motor_process = subprocess.Popen(['python', 'stepper_pyprocess.py'])
+    # start motor moving up for inf time
+    stepper.move_up()
+    
 
 
-def on_buttonOne_release(event, button_canvas, photo, button_name, big_motor_process):
+def on_buttonOne_release(event, button_canvas, photo, button_name, stpper: Stepper_motor):
     canvas.itemconfig(button_canvas, image=photo)
     canvas.move(button_canvas, -4, -4)
     print(f"{button_name} released")
-    big_motor_process.kill()
+    
+    # stop motor
+    stepper.stop_motor()
 
 
 
