@@ -52,14 +52,14 @@ serial_reader_osove_vz.start_reading()
 '''
 CREATE MOTORS
 '''
-# big_motor = Stepper_motor(STEP_PIN_BIG_MOTOR,
-#                           DIR_PIN_BIG_MOTOR,
-#                           ENABLE_PIN_BIG_MOTOR,
-#                           SPEED_BIG_MOTOR,
-#                           STEPS_BIG_MOTOR,
-#                           PREVODOVY_POMER_BIG_MOTOR,
-#                           SEKVENCE_VELIKOST_NATOCENI,
-#                           ENDSTOP_VELIKOST_CUKNUTI)
+big_motor = Stepper_motor(STEP_PIN_BIG_MOTOR,
+                          DIR_PIN_BIG_MOTOR,
+                          ENABLE_PIN_BIG_MOTOR,
+                          SPEED_BIG_MOTOR,
+                          STEPS_BIG_MOTOR,
+                          PREVODOVY_POMER_BIG_MOTOR,
+                          SEKVENCE_VELIKOST_NATOCENI,
+                          ENDSTOP_VELIKOST_CUKNUTI)
 
 # small_motor = Stepper_motor(STEP_PIN_SMALL_MOTOR,
 #                           DIR_PIN_SMALL_MOTOR,
@@ -69,7 +69,7 @@ CREATE MOTORS
 #                           PREVODOVY_POMER_SMALL_MOTOR,
 #                           SEKVENCE_VELIKOST_NATOCENI,
 #                           ENDSTOP_VELIKOST_CUKNUTI)
-big_motor = None
+
 small_motor = None
 '''
 Takes path as string.
@@ -346,8 +346,8 @@ button_1_pressed_photo = ImageTk.PhotoImage(button_1_pressed)
 button_1_canvas = canvas.create_image(57, 435, image=button_1_photo, anchor="nw")
 
 # Zde navazat start process
-canvas.tag_bind(button_1_canvas, "<Button-1>", lambda event: on_buttonOne_press(event, button_1_canvas, button_1_pressed_photo, "Button 1"))
-canvas.tag_bind(button_1_canvas, "<ButtonRelease-1>", lambda event: on_buttonOne_release(event, button_1_canvas, button_1_photo, "Button 1", big_motor_process))
+canvas.tag_bind(button_1_canvas, "<Button-1>", lambda event: on_buttonOne_press(event, button_1_canvas, button_1_pressed_photo, "Button 1", big_motor))
+canvas.tag_bind(button_1_canvas, "<ButtonRelease-1>", lambda event: on_buttonOne_release(event, button_1_canvas, button_1_photo, "Button 1", big_motor))
 
 # Tlacitko 2 Natoceni motoru dolu
 button_image_2_path = relative_to_assets("button_2.png")

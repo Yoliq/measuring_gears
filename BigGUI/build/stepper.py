@@ -32,7 +32,8 @@ class Stepper_motor:
 
     
     
-    def move_up(self, angle=float('inf')):   
+    def move_up(self, angle=float('inf')):
+        print(f"Pohyb motoru nahoru o {angle} stupnu")   
         '''
         angle in degrees
         call subprocess move_up_process.py
@@ -66,16 +67,7 @@ class Stepper_motor:
                                                     str(self.steps),
                                                     str(self.prevodovy_pomer),
                                                     str(angle)])
-            # Wait for the process to finish
-            self._move_up_process.wait()
-
-            # Ensure the process is terminated (if needed)
-            if self._move_up_process.poll() is None:
-                hello_process.terminate()
             
-            # Reset process
-            self._move_up_process = None
-
 
     def move_down(self, angle=float('inf')):
         '''
