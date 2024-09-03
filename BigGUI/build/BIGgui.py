@@ -139,33 +139,31 @@ def select_folder():
 def export_data_to_csv():
     global recorded_data, nazev, datum, file_dir
     filename = f"{nazev.get()}_{datum.get()}.csv"
-    file_path = filedialog.asksaveasfilename(initialdir=file_dir, initialfile=filename, filetypes=[("CSV files", "*.csv")])
-    with open(file_path, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Time", "Angle_paka", "Angle_kolo"])
-        writer.writerows(recorded_data)
-    print(f"Data exportována do {file_path}")
-    # Nacteni dat z csv a vytvoření grafu
-    data_do_grafu = pd.read_csv(file_path)
-    data_do_grafu.head()
-    t = data_do_grafu.iloc[:, 0]
-    uhel1 = data_do_grafu.iloc[:, 1]
-    uhel2 = data_do_grafu.iloc[:, 2]
-    fig, ax = plt.subplots(figsize=(7.04, 4.6), dpi=100, tight_layout=True) # 704x460 pixelů
-    graf_canvas = FigureCanvasTkAgg(fig, master=window)  
-    graf = graf_canvas.get_tk_widget()
-    graf.place(x=1811+1, y=262-13, width=704, height=460)
-    #Ovládací lišta pro graf
-    # toolbar = NavigationToolbar2Tk(graf_canvas, window, pack_toolbar=False)
-    # toolbar.update()
-    # toolbar.place(x=1811+1, y=679, width=704, height=30)
-    # Vykreslení grafu
-    ax.plot(t, uhel1, label='Úhel 1')
-    #ax.plot(t, uhel2, label='Úhel 2')
-    ax.set_xlabel('Čas [s]')
-    ax.set_ylabel('Úhel [°]')
-    ax.legend()
-    graf_canvas.draw()    
+    file_path = filedialog.asksaveasfilename(initialdir=file_dir, initialfile=filename, filetypes=[("CSV files", "*.csv")], parent=window)
+    if file_path == "":
+        print("Export zrušen")
+    else:    
+        with open(file_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Time", "Angle_paka", "Angle_kolo"])
+            writer.writerows(recorded_data)
+        print(f"Data exportována do {file_path}")
+        # Nacteni dat z csv a vytvoření grafu
+        data_do_grafu = pd.read_csv(file_path)
+        data_do_grafu.head()
+        t = data_do_grafu.iloc[:, 0]
+        uhel1 = data_do_grafu.iloc[:, 1]
+        uhel2 = data_do_grafu.iloc[:, 2]
+        fig, ax = plt.subplots(figsize=(7.04, 4.6), dpi=100, tight_layout=True) # 704x460 pixelů
+        graf_canvas = FigureCanvasTkAgg(fig, master=window)  
+        graf = graf_canvas.get_tk_widget()
+        graf.place(x=1811+1, y=262-13, width=704, height=460)
+        ax.plot(t, uhel1, label='Úhel 1')
+        #ax.plot(t, uhel2, label='Úhel 2')
+        ax.set_xlabel('Čas [s]')
+        ax.set_ylabel('Úhel [°]')
+        ax.legend()
+        graf_canvas.draw()    
     
 def record_angle_data(serial_reader_hnaci_kolo, serial_reader_hnane_kolo):
     global start_time
@@ -420,8 +418,8 @@ button_7_pressed = Image.open(button_image_7_pressed_path).convert("RGBA")
 button_7_pressed_photo = ImageTk.PhotoImage(button_7_pressed)
 button_7_canvas = canvas.create_image(2269, 17, image=button_7_photo, anchor="nw")
 
-canvas.tag_bind(button_7_canvas, "<Button-1>", lambda event: (on_button_press(event, button_7_canvas, button_7_pressed_photo, "STOP"), big_motor.stop_motor(), small_motor.stop_motor()))
-canvas.tag_bind(button_7_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_7_canvas, button_7_photo, "STOP"))
+canvas.tag_bind(button_7_canvas, "<Button-1>", lambda event: (on_button_press(event, button_7_canvas, button_7_pressed_photo, "STOP")))
+canvas.tag_bind(button_7_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_7_canvas, button_7_photo, "STOP"), big_motor.stop_motor(), small_motor.stop_motor()))
 
 # Tlacitko 8 ULOZIT
 button_image_8_path = relative_to_assets("button_8.png")
