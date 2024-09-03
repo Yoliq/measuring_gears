@@ -119,6 +119,8 @@ datum = StringVar()
 datum.set("Datum")
 start_time = 0
 file_dir = StringVar()
+hmotnost = 0.0
+
 
 def start_data_recording():
     global data_recording, recorded_data, start_time
@@ -145,7 +147,7 @@ def export_data_to_csv():
     else:    
         with open(file_path, mode='w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(["Time", "Angle_paka", "Angle_kolo"])
+            writer.writerow(["Time", "Angle_paka", "Angle_kolo", "Hmotnost=" + str(hmotnost)])
             writer.writerows(recorded_data)
         print(f"Data exportována do {file_path}")
         # Nacteni dat z csv a vytvoření grafu
@@ -611,6 +613,7 @@ entry_hmotnost = Entry(window, font=("Arial", 36*-1, "bold"), bd=0, highlightthi
 entry_hmotnost.place(x=1425, y=616, width=188)
 
 def get_hmotnost_value(event=None):
+    global hmotnost
     try:
         hmotnost = float(entry_hmotnost.get().replace(',', '.'))  # Převod řetězce na float
         print(f"Hmotnost: {hmotnost}") #Můžeš zkusit přenásobit číslem pro kontrolu, že to je fakt číslo
