@@ -28,11 +28,11 @@ x_g=280
 y_g=50
 
 # Nacteni dat z csv
-data_do_grafu = pd.read_csv('/home/pi/Petr/measuring_gears/BigGUI/build/csv/Test_meření2_2-9.csv')
+data_do_grafu = pd.read_csv('/home/pi/Petr/measuring_gears/BigGUI/build/csv/UR3_abq_5-2_prepis.csv')
 data_do_grafu.head()
 t = data_do_grafu.iloc[:, 0]
 uhel1 = data_do_grafu.iloc[:, 1]
-uhel2 = data_do_grafu.iloc[:, 2]
+#uhel2 = data_do_grafu.iloc[:, 2]
 
 # Výpočet u_2 jako rozdíl mezi poslední a první hodnotou ve sloupci "uhel1"
 u_2 = data_do_grafu.iloc[-1, 1] - data_do_grafu.iloc[0, 1]
