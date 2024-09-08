@@ -165,6 +165,7 @@ def export_data_to_csv():
         ax.set_xlabel('Čas [s]')
         ax.set_ylabel('Úhel [°]')
         ax.legend()
+        ax.grid(True, which='both', linewidth=0.5, color="gray")
         graf_canvas.draw()    
     
 def record_angle_data(serial_reader_hnaci_kolo, serial_reader_hnane_kolo):
