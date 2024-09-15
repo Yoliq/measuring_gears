@@ -276,7 +276,7 @@ SHORTCUTS DEFINITION
 '''
 #window.protocol("WM_DELETE_WINDOW", on_closing)
 window.bind("<F11>", toggle_fullscreen)
-window.bind("<Escape>", end_fullscreen)
+#window.bind("<Escape>", end_fullscreen)
 window.bind("<Button-3>", end_fullscreen)  # Bind right mouse button
 
 

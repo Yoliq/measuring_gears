@@ -28,7 +28,7 @@ x_g=280
 y_g=50
 
 # Nacteni dat z csv
-data_do_grafu = pd.read_csv('/home/pi/Petr/measuring_gears/BigGUI/build/csv/UR3_abq_5-2_prepis.csv')
+data_do_grafu = pd.read_csv('/home/pi/Petr/measuring_gears/BigGUI/build/csv/Hardox45kg_09-09-24.csv')
 data_do_grafu.head()
 t = data_do_grafu.iloc[:, 0]
 uhel1 = data_do_grafu.iloc[:, 1]
