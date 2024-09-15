@@ -17,6 +17,7 @@ import threading
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk #zobrazení grafu v tkinteru
 import pandas as pd
+from napoveda import Napoveda
 
 from constants import *
 from Endstop import Endstop
@@ -156,11 +157,19 @@ def export_data_to_csv():
         t = data_do_grafu.iloc[:, 0]
         uhel1 = data_do_grafu.iloc[:, 1]
         uhel2 = data_do_grafu.iloc[:, 2]
+        u_1 = data_do_grafu.iloc[-1, 0] - data_do_grafu.iloc[0, 0]
+        u_2 = data_do_grafu.iloc[-1, 1] - data_do_grafu.iloc[0, 1]
+        k = u_2 / u_1
+        q = data_do_grafu.iloc[0, 1]
+        print(f"Koeficient k je: {k}")
+        idealni_uhel = k * t 
+        pseudo_tuhost = uhel1 - idealni_uhel
         fig, ax = plt.subplots(figsize=(7.04, 4.6), dpi=100, tight_layout=True) # 704x460 pixelů
         graf_canvas = FigureCanvasTkAgg(fig, master=window)  
         graf = graf_canvas.get_tk_widget()
         graf.place(x=1811+1, y=262-13, width=704, height=460)
-        ax.plot(t, uhel1, label='Úhel 1')
+        ax.plot(t, pseudo_tuhost, label='Pseudo tuhost', color='red')
+        #ax.plot(t, uhel1, label='Úhel 1')
         #ax.plot(t, uhel2, label='Úhel 2')
         ax.set_xlabel('Čas [s]')
         ax.set_ylabel('Úhel [°]')
@@ -449,7 +458,7 @@ button_9_pressed_photo = ImageTk.PhotoImage(button_9_pressed)
 button_9_canvas = canvas.create_image(534, 1272, image=button_9_photo, anchor="nw")
 
 canvas.tag_bind(button_9_canvas, "<Button-1>", lambda event: on_button_press(event, button_9_canvas, button_9_pressed_photo, "Button 9"))
-canvas.tag_bind(button_9_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_9_canvas, button_9_photo, "Button 9"))
+canvas.tag_bind(button_9_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_9_canvas, button_9_photo, "Button 9"), napoveda_instance.dalsi_zprava()))
 
 #Kamera
 image_image_20 = PhotoImage(file=relative_to_assets("image_20.png"))
@@ -495,8 +504,8 @@ image_9 = canvas.create_image(1366.0, 591.0, image=image_image_9)
 image_image_11 = PhotoImage(file=relative_to_assets("image_11.png"))
 image_11 = canvas.create_image(1576.0, 614.0, image=image_image_11)
 
-image_image_12 = PhotoImage(file=relative_to_assets("image_12.png"))
-image_12 = canvas.create_image(1320+24, 409.0, image=image_image_12)
+# image_image_12 = PhotoImage(file=relative_to_assets("image_12.png"))
+# image_12 = canvas.create_image(1320+24, 409.0, image=image_image_12)
 
 image_image_13 = PhotoImage(file=relative_to_assets("image_13.png"))
 image_13 = canvas.create_image(1567.0, 1057.0, image=image_image_13)
@@ -526,31 +535,13 @@ image_22 = canvas.create_image(940.999986493181, 475.0, image=image_image_22)
 angle_label_paka = tk.Label(window, textvariable=natoceni_paky, anchor="e", bg='#8CDAFF', fg="#393939", font=("Arial", -40, "bold"))
 angle_label_paka.place(x=1256+8, y=300+4, width=150, height=40)
 
-
 #Natočení páky 2
 #angle_label_paka_hlavni = tk.Label(window, textvariable= natoceni_paky_hlavni, anchor="e", bg='grey', fg="#393939", font=("Arial", -40, "bold"))
 #angle_label_paka.place(x=1267-1, y=386+5, width=150, height=40)
-# canvas.create_text(
-#     1267-11,
-#     386,
-#     anchor="nw",
-#     text="318,46",
-#     fill="#000000",
-#     font=("Arial", 40 * -1, "bold")
-# )
 
 #Natočení kola
 angle_label_kolo = tk.Label(window, textvariable=natoceni_kola, anchor="e", bg='#8CDAFF', fg="#393939", font=("Arial", -40, "bold"))
 angle_label_kolo.place(x=1135-25, y=1230+4, width=150, height=40)
-
-# canvas.create_text(
-#     1135-11,
-#     1230,
-#     anchor="nw",
-#     text="360,46",
-#     fill="#000000",
-#     font=("Arial", 40 * -1, "bold")
-# )
 
 # Funkce pro validaci názvu souboru
 def validate_nazev(nazev_value):    
@@ -649,13 +640,23 @@ lanko_label.place(x=1435, y=1184, width=122, height=34)
 laser_label = tk.Label(window, textvariable=laser, anchor='e', bg='#8CDAFF', fg="#393939", font=("Arial", -36, "bold"))
 laser_label.place(x=1435, y=1301, width=122, height=34)
 
+napoveda = StringVar()
+napoveda.set("Nápověda")
+napoveda_label = tk.Label(window, textvariable=napoveda, anchor='w', bg = "white", font=("Arial", -36, "bold"))
+napoveda_label.place(x=44+7, y=1284+7, width=465-14, height=80-14)
+
+# Vytvoření instance třídy Napoveda
+napoveda_instance = Napoveda(napoveda)
+
+# Příklad volání metody show_next_message
+# napoveda_instance.show_next_message()
+
 def close_window(event=None):
     on_closing()  # Zavolat funkci on_closing pro správné ukončení
 
 '''
 Camera shitstorm
 '''
-
 # def update_frame(queue):
 #     if not queue.empty():
 #         frame = queue.get()
@@ -674,7 +675,6 @@ Camera shitstorm
 
 # # Inicializace náhledu
 # window.after(0, update_frame, frame_queue)
-
 
 # Bind klávesy "Q" pro zavření okna
 window.bind("<q>", close_window)
