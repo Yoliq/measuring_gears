@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk #zobrazení grafu v tkinteru
 import tkinter as tk
-from tkinter import Tk, Canvas
+from tkinter import Tk, Canvas, filedialog
 import numpy as np
 import pandas as pd
 
@@ -27,8 +27,14 @@ h_g=y_dpi*100
 x_g=280
 y_g=50
 
+# Dialogové okno pro výběr souboru
+file_path = filedialog.askopenfilename(
+    title="Vyberte soubor",
+    filetypes=[("CSV soubory", "*.csv")]
+)
+
 # Nacteni dat z csv
-data_do_grafu = pd.read_csv('/home/pi/Petr/measuring_gears/BigGUI/build/csv/Hardox45kg_09-09-24.csv')
+data_do_grafu = pd.read_csv(file_path)
 data_do_grafu.head()
 t = data_do_grafu.iloc[:, 0]
 uhel1 = data_do_grafu.iloc[:, 1]
@@ -61,6 +67,7 @@ ax.plot(t, pseudo_tuhost, label='Pseudo tuhost', color='red')
 #ax.plot(t, idealni_uhel, label='Ideální úhel', linestyle='--')
 #ax.plot(t, uhel1, label='Úhel 1')
 #ax.plot(t, uhel2, label='Úhel 2')
+ax.set_title(f'Graf z souboru: {file_path}')
 ax.set_xlabel('Čas [s]')
 ax.set_ylabel('Úhel [°]')
 ax.legend()
