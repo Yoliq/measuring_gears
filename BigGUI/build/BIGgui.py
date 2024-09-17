@@ -416,7 +416,7 @@ button_image_6 = Image.open(button_image_6_path).convert("RGBA")
 button_6_photo = ImageTk.PhotoImage(button_image_6)
 button_6_pressed = Image.open(button_image_6_pressed_path).convert("RGBA")
 button_6_pressed_photo = ImageTk.PhotoImage(button_6_pressed)
-button_6_canvas = canvas.create_image(1220+40, 166, image=button_6_photo, anchor="nw")
+button_6_canvas = canvas.create_image(1220+16, 166, image=button_6_photo, anchor="nw")
 
 canvas.tag_bind(button_6_canvas, "<Button-1>", lambda event: (on_button_press(event, button_6_canvas, button_6_pressed_photo, "Button 6"), zero_angle()))
 canvas.tag_bind(button_6_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_6_canvas, button_6_photo, "Button 6"))
@@ -446,7 +446,7 @@ canvas.tag_bind(button_8_canvas, "<Button-1>", lambda event: (on_button_press(ev
 canvas.tag_bind(button_8_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_8_canvas, button_8_photo, "Button 8"), select_folder()))
 
 image_image_17 = PhotoImage(file=relative_to_assets("image_17.png"))
-image_17 = canvas.create_image(340.0, 1288.0, image=image_image_17)
+image_17 = canvas.create_image(398, 1288.0, image=image_image_17)
 
 # Tlacitko 9 NAPOVEDA
 button_image_9_path = relative_to_assets("button_9.png")
@@ -455,7 +455,7 @@ button_image_9 = Image.open(button_image_9_path).convert("RGBA")
 button_9_photo = ImageTk.PhotoImage(button_image_9)
 button_9_pressed = Image.open(button_image_9_pressed_path).convert("RGBA")
 button_9_pressed_photo = ImageTk.PhotoImage(button_9_pressed)
-button_9_canvas = canvas.create_image(534, 1272, image=button_9_photo, anchor="nw")
+button_9_canvas = canvas.create_image(534+128, 1277, image=button_9_photo, anchor="nw")
 
 canvas.tag_bind(button_9_canvas, "<Button-1>", lambda event: on_button_press(event, button_9_canvas, button_9_pressed_photo, "Button 9"))
 canvas.tag_bind(button_9_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_9_canvas, button_9_photo, "Button 9"), napoveda_instance.dalsi_zprava()))
@@ -465,7 +465,7 @@ image_image_20 = PhotoImage(file=relative_to_assets("image_20.png"))
 image_20 = canvas.create_image(2164.5106201171875, 1073.0, image=image_image_20)
 cmx=1810.98
 cmy=867.06-17
-cam_window = canvas.create_rectangle(cmx, cmy, cmx+704.05, cmy+460.9, fill="gray", outline="")
+#cam_window = canvas.create_rectangle(cmx, cmy, cmx+704.05, cmy+460.9, fill="gray", outline="")
 
 
 # Tlacitko 10 SEKVENCE UP
@@ -643,7 +643,7 @@ laser_label.place(x=1435, y=1301, width=122, height=34)
 napoveda = StringVar()
 napoveda.set("Nápověda")
 napoveda_label = tk.Label(window, textvariable=napoveda, anchor='w', bg = "white", font=("Arial", -36, "bold"))
-napoveda_label.place(x=44+7, y=1284+7, width=465-14, height=80-14)
+napoveda_label.place(x=44+7, y=1284+7, width=611-14, height=80-14)
 
 # Vytvoření instance třídy Napoveda
 napoveda_instance = Napoveda(napoveda)
