@@ -50,10 +50,30 @@ class Camera:
             return None
 
     def release(self):
-        if self.vid.isOpened():
+        if hasattr(self, 'vid') and self.vid.isOpened():
             self.vid.release()
         if self.recording and self.out is not None:
             self.out.release()
 
+
     def __del__(self):
         self.release()
+
+def video_process(frame_queue, recording_queue):
+    cam = Camera()
+    recording = False
+    try:
+        while True:
+            if not recording_queue.empty():
+                recording = recording_queue.get()
+                if recording:
+                    cam.start_recording()
+                else:
+                    cam.stop_recording()
+            frame = cam.get_frame()
+            if frame is not None:
+                frame_queue.put(frame)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        cam.release()

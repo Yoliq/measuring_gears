@@ -14,9 +14,17 @@ offset = 0.0
 def init_serial_connection():
     for _ in range(5):  # Opakovat 5 pokusů
         try:
+            
             ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
+            ser.flushInput()
+            sleep(1)
+            ser.close()
+            sleep(1)
+            ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
+            ser.flushInput()
             return ser
         except serial.SerialException:
+            print(f"Pokus o navázání")
             sleep(2)  # Počkat 2 sekundy před dalším pokusem
     raise Exception("Nelze navázat spojení se sériovým portem")
 
