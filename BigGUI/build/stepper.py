@@ -84,6 +84,14 @@ class Stepper_motor:
         motor_thread.join()  # Wait for the rotation to complete
         self.motor_running = False
 
+    def move_steps(self, steps, direction):
+        self.motor_running = True
+        self.stop_event.clear()
+        motor_thread = Thread(target=self.step_motor, args=(direction, steps))
+        motor_thread.start() # Start parallel thread
+        motor_thread.join()  # Wait for the rotation to complete
+        self.motor_running = False 
+
     '''
     TODO:
     PUT THESE AS PART OF BUTTON CLASSES

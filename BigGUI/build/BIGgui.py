@@ -618,13 +618,18 @@ entry_hmotnost.bind("<KP_Enter>", get_hmotnost_value)
 
 # Osová vzdálenost - zadat
 entry_os_vzdalenost_var = StringVar()
-entry_os_vzdalenost = Entry(window, font=("Arial", 36 * -1, "bold"), bd=0, highlightthickness=0, relief="flat", justify="center", textvariable=entry_os_vzdalenost_var, validate="key", validatecommand=(validate_command, "%P"))
+entry_os_vzdalenost = Entry(window, textvariable=entry_os_vzdalenost_var, font=("Arial", 36 * -1, "bold"), bd=0, highlightthickness=0, relief="flat", justify="center", validate="key", validatecommand=(validate_command, "%P"))
 entry_os_vzdalenost.place(x=1416, y=1058, width=164)
 
 def get_os_vzdalenost_value(event=None):
     try:
         os_vzdalenost = float(entry_os_vzdalenost.get().replace(',', '.'))
-        print(f"Osová vzdálenost: {os_vzdalenost*10}")
+        lanko_value = float(lanko.get())
+        delta_os_vzdalenost = os_vzdalenost - lanko_value
+        print(f"Osová vzdálenost: {os_vzdalenost}, delta: {delta_os_vzdalenost}")
+        kroky_pro_posun = abs(delta_os_vzdalenost) * PREVODOVY_POMER_SMALL_MOTOR
+        direction = GPIO.HIGH if delta_os_vzdalenost > 0 else GPIO.LOW
+        small_motor.move_steps(kroky_pro_posun, direction)
     except ValueError:
         print("Zadaná hodnota není platné číslo.")
     window.focus_set()  # Přesun fokusu na hlavní okno
