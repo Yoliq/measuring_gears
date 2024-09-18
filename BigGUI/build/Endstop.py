@@ -39,7 +39,7 @@ class Endstop:
         # couvni s motorem
         time.sleep(0.5)
         self.motor_to_stop.sekvence_up(self.motor_to_stop.endstop_velikost_cuknuti)
-        time.sleep(0.1)
+        time.sleep(0.2)
 
         # vynuluj pole a nastav je na hodnotu self.endstop_pressed_set_angle
         current_angle_paka = float(self.natoceni_paky.get())

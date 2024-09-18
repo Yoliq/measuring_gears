@@ -15,6 +15,10 @@ from serial_length import DualSerialReader
 from multiprocessing import Process, Queue
 import csv
 import threading 
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk #zobrazení grafu v tkinteru
+import pandas as pd
+from napoveda import Napoveda
 
 from constants import *
 from Endstop import Endstop
@@ -118,6 +122,8 @@ datum = StringVar()
 datum.set("Datum")
 start_time = 0
 file_dir = StringVar()
+hmotnost = 0.0
+
 
 def start_data_recording():
     global data_recording, recorded_data, start_time
@@ -138,12 +144,40 @@ def select_folder():
 def export_data_to_csv():
     global recorded_data, nazev, datum, file_dir
     filename = f"{nazev.get()}_{datum.get()}.csv"
-    file_path = filedialog.asksaveasfilename(initialdir=file_dir, initialfile=filename, filetypes=[("CSV files", "*.csv")])
-    with open(file_path, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Time", "Angle_paka", "Angle_kolo"])
-        writer.writerows(recorded_data)
-    print(f"Data exportována do {file_path}")
+    file_path = filedialog.asksaveasfilename(initialdir=file_dir, initialfile=filename, filetypes=[("CSV files", "*.csv")], parent=window)
+    if file_path == "":
+        print("Export zrušen")
+    else:    
+        with open(file_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Time", "Angle_paka", "Angle_kolo", "Hmotnost=" + str(hmotnost)])
+            writer.writerows(recorded_data)
+        print(f"Data exportována do {file_path}")
+        # Nacteni dat z csv a vytvoření grafu
+        data_do_grafu = pd.read_csv(file_path)
+        data_do_grafu.head()
+        t = data_do_grafu.iloc[:, 0]
+        uhel1 = data_do_grafu.iloc[:, 1]
+        uhel2 = data_do_grafu.iloc[:, 2]
+        u_1 = data_do_grafu.iloc[-1, 0] - data_do_grafu.iloc[0, 0]
+        u_2 = data_do_grafu.iloc[-1, 1] - data_do_grafu.iloc[0, 1]
+        k = u_2 / u_1
+        q = data_do_grafu.iloc[0, 1]
+        print(f"Koeficient k je: {k}")
+        idealni_uhel = k * t 
+        pseudo_tuhost = uhel1 - idealni_uhel
+        fig, ax = plt.subplots(figsize=(7.04, 4.6), dpi=100, tight_layout=True) # 704x460 pixelů
+        graf_canvas = FigureCanvasTkAgg(fig, master=window)  
+        graf = graf_canvas.get_tk_widget()
+        graf.place(x=1811+1, y=262-13, width=704, height=460)
+        ax.plot(t, pseudo_tuhost, label='Pseudo tuhost', color='red')
+        #ax.plot(t, uhel1, label='Úhel 1')
+        #ax.plot(t, uhel2, label='Úhel 2')
+        ax.set_xlabel('Čas [s]')
+        ax.set_ylabel('Úhel [°]')
+        ax.legend()
+        ax.grid(True, which='both', linewidth=0.5, color="gray")
+        graf_canvas.draw()    
     
 def record_angle_data(serial_reader_hnaci_kolo, serial_reader_hnane_kolo):
     global start_time
@@ -254,7 +288,7 @@ SHORTCUTS DEFINITION
 '''
 #window.protocol("WM_DELETE_WINDOW", on_closing)
 window.bind("<F11>", toggle_fullscreen)
-window.bind("<Escape>", end_fullscreen)
+#window.bind("<Escape>", end_fullscreen)
 window.bind("<Button-3>", end_fullscreen)  # Bind right mouse button
 
 
@@ -410,7 +444,7 @@ button_image_6 = Image.open(button_image_6_path).convert("RGBA")
 button_6_photo = ImageTk.PhotoImage(button_image_6)
 button_6_pressed = Image.open(button_image_6_pressed_path).convert("RGBA")
 button_6_pressed_photo = ImageTk.PhotoImage(button_6_pressed)
-button_6_canvas = canvas.create_image(1220+40, 166, image=button_6_photo, anchor="nw")
+button_6_canvas = canvas.create_image(1220+16, 166, image=button_6_photo, anchor="nw")
 
 canvas.tag_bind(button_6_canvas, "<Button-1>", lambda event: (on_button_press(event, button_6_canvas, button_6_pressed_photo, "Button 6"), zero_angle()))
 canvas.tag_bind(button_6_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_6_canvas, button_6_photo, "Button 6"))
@@ -424,8 +458,8 @@ button_7_pressed = Image.open(button_image_7_pressed_path).convert("RGBA")
 button_7_pressed_photo = ImageTk.PhotoImage(button_7_pressed)
 button_7_canvas = canvas.create_image(2269, 17, image=button_7_photo, anchor="nw")
 
-canvas.tag_bind(button_7_canvas, "<Button-1>", lambda event: (on_button_press(event, button_7_canvas, button_7_pressed_photo, "STOP"), big_motor.stop_motor(), small_motor.stop_motor()))
-canvas.tag_bind(button_7_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_7_canvas, button_7_photo, "STOP"))
+canvas.tag_bind(button_7_canvas, "<Button-1>", lambda event: (on_button_press(event, button_7_canvas, button_7_pressed_photo, "STOP")))
+canvas.tag_bind(button_7_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_7_canvas, button_7_photo, "STOP"), big_motor.stop_motor(), small_motor.stop_motor()))
 
 # Tlacitko 8 ULOZIT
 button_image_8_path = relative_to_assets("button_8.png")
@@ -440,7 +474,7 @@ canvas.tag_bind(button_8_canvas, "<Button-1>", lambda event: (on_button_press(ev
 canvas.tag_bind(button_8_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_8_canvas, button_8_photo, "Button 8"), select_folder()))
 
 image_image_17 = PhotoImage(file=relative_to_assets("image_17.png"))
-image_17 = canvas.create_image(340.0, 1288.0, image=image_image_17)
+image_17 = canvas.create_image(398, 1288.0, image=image_image_17)
 
 # Tlacitko 9 NAPOVEDA
 button_image_9_path = relative_to_assets("button_9.png")
@@ -449,17 +483,17 @@ button_image_9 = Image.open(button_image_9_path).convert("RGBA")
 button_9_photo = ImageTk.PhotoImage(button_image_9)
 button_9_pressed = Image.open(button_image_9_pressed_path).convert("RGBA")
 button_9_pressed_photo = ImageTk.PhotoImage(button_9_pressed)
-button_9_canvas = canvas.create_image(534, 1272, image=button_9_photo, anchor="nw")
+button_9_canvas = canvas.create_image(534+128, 1277, image=button_9_photo, anchor="nw")
 
 canvas.tag_bind(button_9_canvas, "<Button-1>", lambda event: on_button_press(event, button_9_canvas, button_9_pressed_photo, "Button 9"))
-canvas.tag_bind(button_9_canvas, "<ButtonRelease-1>", lambda event: on_button_release(event, button_9_canvas, button_9_photo, "Button 9"))
+canvas.tag_bind(button_9_canvas, "<ButtonRelease-1>", lambda event: (on_button_release(event, button_9_canvas, button_9_photo, "Button 9"), napoveda_instance.dalsi_zprava()))
 
 #Kamera
 image_image_20 = PhotoImage(file=relative_to_assets("image_20.png"))
 image_20 = canvas.create_image(2164.5106201171875, 1073.0, image=image_image_20)
 cmx=1810.98
 cmy=867.06-17
-cam_window = canvas.create_rectangle(cmx, cmy, cmx+704.05, cmy+460.9, fill="gray", outline="")
+#cam_window = canvas.create_rectangle(cmx, cmy, cmx+704.05, cmy+460.9, fill="gray", outline="")
 
 
 # Tlacitko 10 SEKVENCE UP
@@ -498,8 +532,8 @@ image_9 = canvas.create_image(1366.0, 591.0, image=image_image_9)
 image_image_11 = PhotoImage(file=relative_to_assets("image_11.png"))
 image_11 = canvas.create_image(1576.0, 614.0, image=image_image_11)
 
-image_image_12 = PhotoImage(file=relative_to_assets("image_12.png"))
-image_12 = canvas.create_image(1320+24, 409.0, image=image_image_12)
+# image_image_12 = PhotoImage(file=relative_to_assets("image_12.png"))
+# image_12 = canvas.create_image(1320+24, 409.0, image=image_image_12)
 
 image_image_13 = PhotoImage(file=relative_to_assets("image_13.png"))
 image_13 = canvas.create_image(1567.0, 1057.0, image=image_image_13)
@@ -529,31 +563,13 @@ image_22 = canvas.create_image(940.999986493181, 475.0, image=image_image_22)
 angle_label_paka = tk.Label(window, textvariable=natoceni_paky, anchor="e", bg='#8CDAFF', fg="#393939", font=("Arial", -40, "bold"))
 angle_label_paka.place(x=1256+8, y=300+4, width=150, height=40)
 
-
 #Natočení páky 2
 #angle_label_paka_hlavni = tk.Label(window, textvariable= natoceni_paky_hlavni, anchor="e", bg='grey', fg="#393939", font=("Arial", -40, "bold"))
 #angle_label_paka.place(x=1267-1, y=386+5, width=150, height=40)
-# canvas.create_text(
-#     1267-11,
-#     386,
-#     anchor="nw",
-#     text="318,46",
-#     fill="#000000",
-#     font=("Arial", 40 * -1, "bold")
-# )
 
 #Natočení kola
 angle_label_kolo = tk.Label(window, textvariable=natoceni_kola, anchor="e", bg='#8CDAFF', fg="#393939", font=("Arial", -40, "bold"))
 angle_label_kolo.place(x=1135-25, y=1230+4, width=150, height=40)
-
-# canvas.create_text(
-#     1135-11,
-#     1230,
-#     anchor="nw",
-#     text="360,46",
-#     fill="#000000",
-#     font=("Arial", 40 * -1, "bold")
-# )
 
 # Funkce pro validaci názvu souboru
 def validate_nazev(nazev_value):    
@@ -617,6 +633,7 @@ entry_hmotnost = Entry(window, font=("Arial", 36*-1, "bold"), bd=0, highlightthi
 entry_hmotnost.place(x=1425, y=616, width=188)
 
 def get_hmotnost_value(event=None):
+    global hmotnost
     try:
         hmotnost = float(entry_hmotnost.get().replace(',', '.'))  # Převod řetězce na float
         print(f"Hmotnost: {hmotnost}") #Můžeš zkusit přenásobit číslem pro kontrolu, že to je fakt číslo
@@ -629,13 +646,18 @@ entry_hmotnost.bind("<KP_Enter>", get_hmotnost_value)
 
 # Osová vzdálenost - zadat
 entry_os_vzdalenost_var = StringVar()
-entry_os_vzdalenost = Entry(window, font=("Arial", 36 * -1, "bold"), bd=0, highlightthickness=0, relief="flat", justify="center", textvariable=entry_os_vzdalenost_var, validate="key", validatecommand=(validate_command, "%P"))
+entry_os_vzdalenost = Entry(window, textvariable=entry_os_vzdalenost_var, font=("Arial", 36 * -1, "bold"), bd=0, highlightthickness=0, relief="flat", justify="center", validate="key", validatecommand=(validate_command, "%P"))
 entry_os_vzdalenost.place(x=1416, y=1058, width=164)
 
 def get_os_vzdalenost_value(event=None):
     try:
         os_vzdalenost = float(entry_os_vzdalenost.get().replace(',', '.'))
-        print(f"Osová vzdálenost: {os_vzdalenost*10}")
+        lanko_value = float(lanko.get())
+        delta_os_vzdalenost = os_vzdalenost - lanko_value
+        print(f"Osová vzdálenost: {os_vzdalenost}, delta: {delta_os_vzdalenost}")
+        kroky_pro_posun = abs(delta_os_vzdalenost) * PREVODOVY_POMER_SMALL_MOTOR
+        direction = GPIO.HIGH if delta_os_vzdalenost > 0 else GPIO.LOW
+        small_motor.move_steps(kroky_pro_posun, direction)
     except ValueError:
         print("Zadaná hodnota není platné číslo.")
     window.focus_set()  # Přesun fokusu na hlavní okno
@@ -651,13 +673,23 @@ lanko_label.place(x=1435, y=1184, width=122, height=34)
 laser_label = tk.Label(window, textvariable=laser, anchor='e', bg='#8CDAFF', fg="#393939", font=("Arial", -36, "bold"))
 laser_label.place(x=1435, y=1301, width=122, height=34)
 
+napoveda = StringVar()
+napoveda.set("Nápověda")
+napoveda_label = tk.Label(window, textvariable=napoveda, anchor='w', bg = "white", font=("Arial", -36, "bold"))
+napoveda_label.place(x=44+7, y=1284+7, width=611-14, height=80-14)
+
+# Vytvoření instance třídy Napoveda
+napoveda_instance = Napoveda(napoveda)
+
+# Příklad volání metody show_next_message
+# napoveda_instance.show_next_message()
+
 def close_window(event=None):
     on_closing()  # Zavolat funkci on_closing pro správné ukončení
 
 '''
 Camera shitstorm
 '''
-
 # def update_frame(queue):
 #     if not queue.empty():
 #         frame = queue.get()
@@ -676,7 +708,6 @@ Camera shitstorm
 
 # # Inicializace náhledu
 # window.after(0, update_frame, frame_queue)
-
 
 # Bind klávesy "Q" pro zavření okna
 window.bind("<q>", close_window)

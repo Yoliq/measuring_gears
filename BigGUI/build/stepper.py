@@ -28,66 +28,84 @@ class Stepper_motor:
         '''
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.enable_pin, GPIO.OUT)
+
+        # Initial state
+        GPIO.output(self.enable_pin, GPIO.HIGH)  # Disable driver at start
+
+    def step_motor(self, direction, steps=None):
+        '''
+        Function to step motor
+        '''
+
+        GPIO.output(self.dir_pin, direction)
         GPIO.output(self.enable_pin, GPIO.LOW)  # Enable driver
 
-    
-    
-    def move_up(self, angle=float('inf')):
-        print(f"Pohyb motoru nahoru o {angle} stupnu")   
-        '''
-        angle in degrees
-        call subprocess move_up_process.py
-        '''
-        # check that no subprocesses run
-        if isinstance(self._move_up_process, subprocess.Popen):
-            self._move_up_process.kill()
-            self._move_up_process = None
-        if isinstance(self._move_down_process, subprocess.Popen):
-            self._move_down_process.kill()
-            self._move_down_process = None
+        steps_taken = 0
+        while not self.stop_event.is_set() and (steps is None or steps_taken < steps):
+            now = datetime.now()
+            GPIO.output(self.step_pin, GPIO.HIGH)
+            time.sleep(1/self.speed)
+            GPIO.output(self.step_pin, GPIO.LOW)
+            time.sleep(1/self.speed)
+            steps_taken += 1
 
-        # start move_up_subprocess.py
-        if angle == float('inf'):
-            self._move_up_process = subprocess.Popen(['python',
-                                                    'move_up_subprocess.py',
-                                                    str(self.dir_pin),
-                                                    str(self.enable_pin),
-                                                    str(self.step_pin),
-                                                    str(self.speed),
-                                                    str(self.steps),
-                                                    str(self.prevodovy_pomer),
-                                                    str(angle)])
-        else:
-            self._move_up_process = subprocess.Popen(['python',
-                                                    'move_up_subprocess.py',
-                                                    str(self.dir_pin),
-                                                    str(self.enable_pin),
-                                                    str(self.step_pin),
-                                                    str(self.speed),
-                                                    str(self.steps),
-                                                    str(self.prevodovy_pomer),
-                                                    str(angle)])
-            
+        GPIO.output(self.enable_pin, GPIO.HIGH)  # Disable driver when stopping
 
-    def move_down(self, angle=float('inf')):
-        '''
-        angle in degrees
-        call subprocess move_down_process.py
-        '''
-        pass
-        # TODO once move_up works
-
-
+    def start_motor(self, direction):
+        self.motor_running = True
+        self.stop_event.clear()
+        motor_thread = Thread(target=self.step_motor, args=(direction,))
+        motor_thread.start()
+        self.motor_thread = motor_thread
 
     def stop_motor(self):
-        GPIO.output(self.enable_pin, GPIO.HIGH)  # Disable driver
+        self.motor_running = False
+        self.stop_event.set()
+        if hasattr(self, 'motor_thread'):
+            self.motor_thread.join()
         
-        # check that no subprocesses run
-        if isinstance(self._move_up_process, subprocess.Popen):
-            self._move_up_process.kill()
-            self._move_up_process = None
-        if isinstance(self._move_down_process, subprocess.Popen):
-            self._move_down_process.kill()
-            self._move_down_process = None
-        
+    def sekvence_up(self, sekvence_velikost_natoceni):
+        steps = self.steps / 360 * self.prevodovy_pomer * sekvence_velikost_natoceni
+        self.motor_running = True
+        self.stop_event.clear()
+        motor_thread = Thread(target=self.step_motor, args=(GPIO.HIGH, steps))
+        motor_thread.start() # Start parallel thread
+        motor_thread.join()  # Wait for the rotation to complete
+        self.motor_running = False 
 
+    def sekvence_down(self, sekvence_velikost_natoceni):
+        steps = self.steps / 360 * self.prevodovy_pomer * sekvence_velikost_natoceni
+        self.motor_running = True
+        self.stop_event.clear()
+        motor_thread = Thread(target=self.step_motor, args=(GPIO.LOW, steps))
+        motor_thread.start() # Start parallel thread
+        motor_thread.join()  # Wait for the rotation to complete
+        self.motor_running = False
+
+    def move_steps(self, steps, direction):
+        self.motor_running = True
+        self.stop_event.clear()
+        motor_thread = Thread(target=self.step_motor, args=(direction, steps))
+        motor_thread.start() # Start parallel thread
+        motor_thread.join()  # Wait for the rotation to complete
+        self.motor_running = False 
+
+    '''
+    TODO:
+    PUT THESE AS PART OF BUTTON CLASSES
+    '''
+    def on_button_press_forward(self, event):
+        #print("button_1 pressed")
+        self.start_motor(GPIO.HIGH)
+
+    def on_button_release_forward(self, event):
+        #print("button_1 released")
+        self.stop_motor()
+
+    def on_button_press_backward(self, event):
+        #print("button_2 pressed")
+        self.start_motor(GPIO.LOW)
+
+    def on_button_release_backward(self, event):
+        #print("button_2 released")
+        self.stop_motor()
