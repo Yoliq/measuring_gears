@@ -22,6 +22,7 @@ from napoveda import Napoveda
 
 from constants import *
 from Endstop import Endstop
+from camera_app import CameraApp
 
 '''
 START SERIAL READERS
@@ -714,4 +715,8 @@ window.bind("<q>", close_window)
 
 #window.resizable
 # (False, False)
+
+# Now, integrate the CameraApp with the same root window
+camera_app = CameraApp(root, video_source=0, fps=10, x=100, y=100, scale=0.5)
+
 window.mainloop()
