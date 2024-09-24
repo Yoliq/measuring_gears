@@ -6,8 +6,6 @@ from stepper import Stepper_motor
 from threading import Thread
 import RPi.GPIO as GPIO
 import re 
-#import camera
-#import cv2
 from time import time, sleep
 from serial_read import SerialReader
 from serial_length import DualSerialReader
@@ -18,7 +16,7 @@ from matplotlib import pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk #zobrazení grafu v tkinteru
 import pandas as pd
 from napoveda import Napoveda
-
+from camera_app import CameraApp
 from constants import *
 from Endstop import Endstop
 
@@ -252,33 +250,8 @@ def home(event):
     print("Home button pressed")
     Thread(target=big_motor.start_motor, args=(GPIO.LOW,)).start()
 
-'''
-Camera code
-'''
-# def update_frame(queue):
-#     if not queue.empty():
-#         frame = queue.get()
-#         if frame is not None:
-#             frame = cv2.resize(frame, (704, 461))
-#             photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
-#             canvas.create_image(cmx, cmy, image=photo, anchor=tk.NW)
-#             window.photo = photo
-#     window.after(33, update_frame, queue)  # Cca 30 fps
-
-# def start_recording():
-#     recording_queue.put(True)
-
-# def stop_recording():
-#     recording_queue.put(False)
-
 def on_closing():
-    # recording_queue.put(False)  # Zastavit nahrávání, pokud běží
-    # process.terminate()  # Ukončit proces kamery
-    # process.join()  # Počkat na ukončení procesu
     window.destroy()
-
-# # Inicializace kamery a spuštění náhledu při spuštění programu
-# cam = camera.Camera()
 
 '''
 SHORTCUTS DEFINITION
@@ -287,7 +260,6 @@ SHORTCUTS DEFINITION
 window.bind("<F11>", toggle_fullscreen)
 #window.bind("<Escape>", end_fullscreen)
 window.bind("<Button-3>", end_fullscreen)  # Bind right mouse button
-
 
 # Initially start in fullscreen mode
 window.state = True
@@ -653,37 +625,12 @@ napoveda_label.place(x=44+7, y=1284+7, width=611-14, height=80-14)
 # Vytvoření instance třídy Napoveda
 napoveda_instance = Napoveda(napoveda)
 
-# Příklad volání metody show_next_message
-# napoveda_instance.show_next_message()
-
 def close_window(event=None):
     on_closing()  # Zavolat funkci on_closing pro správné ukončení
 
-'''
-Camera shitstorm
-'''
-# def update_frame(queue):
-#     if not queue.empty():
-#         frame = queue.get()
-#         if frame is not None:
-#             frame = cv2.resize(frame, (704, 461))
-#             photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
-#             canvas.create_image(cmx, cmy, image=photo, anchor=tk.NW)
-#             window.photo = photo
-#     window.after(33, update_frame, queue)  # Cca 30 fps
-
-# # Inicializace fronty a spuštění video procesu
-# frame_queue = Queue()
-# recording_queue = Queue()
-# process = Process(target=camera.video_process, args=(frame_queue, recording_queue))
-# process.start()
-
-# # Inicializace náhledu
-# window.after(0, update_frame, frame_queue)
-
 # Bind klávesy "Q" pro zavření okna
 window.bind("<q>", close_window)
-
+camera_app = CameraApp(window, video_source=0, fps=10, x=1810.98, y=867.06-17, scale=1, width=704, height=461)
 #window.resizable
 # (False, False)
 window.mainloop()
