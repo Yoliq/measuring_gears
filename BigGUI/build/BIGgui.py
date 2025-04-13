@@ -4,7 +4,7 @@ from tkinter import Tk, Canvas, Entry, Text, PhotoImage, StringVar, filedialog
 from PIL import Image, ImageTk
 from stepper import Stepper_motor
 from threading import Thread
-import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO #probably won´t work on RPi5
 import re 
 from time import time, sleep
 from serial_read import SerialReader
