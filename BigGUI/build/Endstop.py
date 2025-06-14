@@ -28,10 +28,19 @@ class Endstop:
 
     def _GPIO_setup(self):
         GPIO.setup(self.pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.add_event_detect(self.pin, GPIO.FALLING, callback=self.pressed_action, bouncetime=1500)
+        Thread(target=self._poll_endstop, daemon=True).start()
 
+    def _poll_endstop(self):
+        last_state = GPIO.input(self.pin)
+        while True:
+            current_state = GPIO.input(self.pin)
+            if current_state == self.pressed_state and last_state != current_state:
+                self.pressed_action()
+                time.sleep(1.5)  # debounce
+            last_state = current_state
+            time.sleep(0.01)
 
-    def pressed_action(self, channel):
+    def pressed_action(self):
         # stop motor
         self.motor_to_stop.stop_motor()
         print("End stop reached!")
@@ -48,6 +57,5 @@ class Endstop:
         self.serial_reader_hnane_kolo.zero_angle(current_angle_kolo + self.endstop_pressed_set_angle)
         
         # nastavení hodnoty hlavního natočení páky   
-        current_angle_paka_hlavni =  float(self.natoceni_paky_hlavni.get())
-        self.serial_reader_hnaci_kolo.zero_angle(current_angle_paka_hlavni + self.endstop_pressed_set_angle)
-        
+        #current_angle_paka_hlavni =  float(self.natoceni_paky_hlavni.get())
+        #self.serial_reader_hnaci_kolo.zero_angle(current_angle_paka_hlavni + self.endstop_pressed_set_angle)
